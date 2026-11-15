@@ -329,6 +329,36 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   border:1px solid rgba(255,255,255,.82);
   box-shadow:inset 0 2px 3px rgba(255,255,255,.95), inset 0 -3px 6px rgba(255,255,255,.3), inset 0 -10px 16px -8px color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 22px rgba(25,10,45,.15)}
 .cbtn.big{background:radial-gradient(circle at 32% 27%, rgba(255,255,255,.55), rgba(255,255,255,.16) 48%, rgba(255,255,255,.05) 74%, color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,.08))) !important}
+
+/* ===== 按键动效：弹簧按压 / 光扫 / 图标弹跳 / 收藏爆点 ===== */
+.gbtn,.cbtn,.btn,.rbtn,.sw{transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .25s, filter .18s, background .25s}
+#rail .navbtn{transition:transform .22s cubic-bezier(.34,1.56,.64,1), background .25s, box-shadow .25s, color .2s, filter .18s}
+.gbtn:active,.cbtn:active{filter:brightness(1.16) saturate(1.1)}
+.btn:active{transform:scale(.95);filter:brightness(1.1)}
+.card{transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .25s}
+.card:active{transform:scale(.955)}
+.acard{transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+.acard:active{transform:scale(.955)}
+.row{transition:background .18s, transform .18s}
+.row:active{background:color-mix(in srgb, var(--accent) 9%, rgba(255,255,255,.35))}
+.gbtn,.cbtn{position:relative;overflow:hidden}
+.gbtn::after,.cbtn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(115deg, transparent 32%, rgba(255,255,255,.5) 48%, rgba(255,255,255,.1) 56%, transparent 72%);
+  transform:translateX(-130%);transition:transform .6s ease}
+.gbtn:active::after,.cbtn:active::after{transform:translateX(130%)}
+#btnPlay svg,#miniPlay svg{animation:iconpop .34s cubic-bezier(.34,1.56,.64,1)}
+@keyframes iconpop{0%{transform:scale(.55);opacity:.35}55%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
+#rail .navbtn.on{animation:navon .38s cubic-bezier(.34,1.56,.64,1)}
+@keyframes navon{0%{transform:scale(.9);filter:brightness(1.25)}100%{transform:scale(1);filter:brightness(1)}}
+.rbtn.on svg{animation:heartpop .4s cubic-bezier(.34,1.8,.64,1)}
+#npFav.on svg{animation:heartpop .4s cubic-bezier(.34,1.8,.64,1)}
+@keyframes heartpop{0%{transform:scale(.5)}45%{transform:scale(1.35)}70%{transform:scale(.92)}100%{transform:scale(1)}}
+.sw{transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .2s}
+.sw:active{transform:scale(.88)}
+.sheetrow{transition:background .15s}
+.sheetrow:active{background:color-mix(in srgb, var(--accent) 10%, transparent)}
+.alink:active{opacity:.55}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01s !important;transition-duration:.01s !important}}
 </style>
 </head>
 <body>
