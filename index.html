@@ -106,6 +106,27 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
 .row .tt .n{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .tt .a{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .eq{display:none;color:var(--accent);font-size:15px}
+.rowbtns{display:flex;gap:2px;align-items:center}
+.rbtn{width:34px;height:34px;border:none;background:transparent;color:var(--ink2);display:grid;place-items:center;cursor:pointer;border-radius:50%;padding:0;flex:none}
+.rbtn svg{width:20px;height:20px}
+.rbtn.on{color:var(--accent)}
+.rbtn.on svg path{fill:currentColor}
+.rbtn:active{transform:scale(.86)}
+#npFav{display:grid;place-items:center;width:42px;height:42px;margin:12px auto 0;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:linear-gradient(145deg, rgba(255,255,255,.42), rgba(255,255,255,.12) 55%, rgba(255,255,255,.3));box-shadow:0 6px 16px rgba(31,38,135,.16), inset 0 1px 1px rgba(255,255,255,.75), inset 0 -1px 1px rgba(255,255,255,.22);color:var(--ink2);cursor:pointer}
+#npFav svg{width:21px;height:21px}
+#npFav.on{color:var(--accent)}
+#npFav.on svg path{fill:currentColor}
+#sheetWrap{position:fixed;inset:0;z-index:90;display:none;background:rgba(28,30,52,.28)}
+#sheetWrap.open{display:block}
+#sheet{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:rgba(255,255,255,.86);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(31,38,135,.22);animation:sheetup .25s}
+@keyframes sheetup{from{transform:translateY(26px);opacity:.4}to{transform:none;opacity:1}}
+.sheettitle{font-size:17px;font-weight:800;margin-bottom:12px}
+.sheetinput{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid rgba(20,20,60,.12);background:rgba(255,255,255,.7);font-size:16px;color:var(--ink)}
+.sheetbtns{display:flex;gap:10px;margin-top:14px}
+.sheetbtns .btn{flex:1;justify-content:center}
+.sheetlist{max-height:46vh;overflow:auto}
+.sheetrow{padding:13px 4px;border-bottom:1px solid rgba(20,20,60,.07);font-weight:600;cursor:pointer;font-size:15px}
+.sheetrow:active{color:var(--accent)}
 .row.playing .eq{display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
 .grid .card{width:auto}.grid .card img,.grid .card .ph{width:100%;height:auto;aspect-ratio:1}
@@ -363,6 +384,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
         <div id="npArtWrap"><img id="npArt" alt=""><video id="npVideo" autoplay loop muted playsinline></video></div>
         <div id="npTitle">—</div>
         <div id="npArtist">—</div>
+        <button id="npFav" aria-label="收藏歌曲"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20.6C6.6 17.1 3.2 13.8 3.2 10.1 3.2 7.4 5.2 5.3 7.7 5.3c1.7 0 3.3.9 4.3 2.4 1-1.5 2.6-2.4 4.3-2.4 2.5 0 4.5 2.1 4.5 4.8 0 3.7-3.4 7-8.8 10.5Z"/></svg></button>
       </div>
       <div id="lyrics"></div>
       <div id="queueView"></div>
@@ -387,6 +409,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   </div>
 </div>
 
+<div id="sheetWrap"><div id="sheet"></div></div>
 <div id="toast"></div>
 <audio id="previewAudio"></audio>
 
@@ -408,17 +431,19 @@ function fmtT(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60
 
 const RELAY = (window.AOI_CONFIG || {}).relayBase || '';
 const RELAY_ALT = 'https://aoi-relay-banpu5tne-taratara19172008-cmyk.vercel.app/api/relay';
-async function api(path, amp = false) {
+async function api(path, amp = false, opts = {}) {
   const headers = { 'Authorization': 'Bearer ' + DEV };
+  const init = { headers, method: opts.method || 'GET' };
+  if (opts.body) { headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.body); }
   if (music && music.musicUserToken) headers['Music-User-Token'] = music.musicUserToken;
   const direct = (amp ? 'https://amp-api.music.apple.com' : 'https://api.music.apple.com') + path;
   const via = base => base + '?target=' + encodeURIComponent(direct);
   let r;
   if (RELAY) {
-    try { r = await fetch(via(RELAY), { headers }); }
-    catch (e) { r = await fetch(via(RELAY_ALT), { headers }); }
+    try { r = await fetch(via(RELAY), init); }
+    catch (e) { r = await fetch(via(RELAY_ALT), init); }
   } else {
-    r = await fetch(direct, { headers });
+    r = await fetch(direct, init);
   }
   if (!r.ok) {
     const err = new Error('API ' + r.status);
@@ -429,6 +454,7 @@ async function api(path, amp = false) {
     } catch {}
     throw err;
   }
+  if (r.status === 204) return {};
   return r.json();
 }
 /* 让 MusicKit 自己发出的请求也走中转（它直连苹果会被按来源拦截） */
@@ -520,9 +546,12 @@ function cardHTML(item, kind) {
   const img = a.artwork ? `<img loading="lazy" src="${art(a.artwork.url, 320, 320)}" alt="">` : '<img src="assets/icon-512.png" alt="">';
   return `<div class="card" data-kind="${kind}" data-id="${item.id}">${img}<div class="t">${esc(a.name || '')}</div><div class="a">${esc(a.artistName || a.curatorName || '')}</div></div>`;
 }
+const HEART_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20.6C6.6 17.1 3.2 13.8 3.2 10.1 3.2 7.4 5.2 5.3 7.7 5.3c1.7 0 3.3.9 4.3 2.4 1-1.5 2.6-2.4 4.3-2.4 2.5 0 4.5 2.1 4.5 4.8 0 3.7-3.4 7-8.8 10.5Z"/></svg>';
+const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function rowHTML(s, i) {
   const a = s.attributes || {};
-  return `<div class="row" data-id="${s.id}"><span class="rk">${i + 1}</span><img loading="lazy" src="${art(a.artwork?.url, 92, 92)}" alt=""><div class="tt"><div class="n">${esc(a.name)}</div><div class="a"><span class="alink" data-nav="artist">${esc(a.artistName)}</span>${a.albumName ? ` · <span class="alink" data-nav="album">${esc(a.albumName)}</span>` : ''}</div></div><span class="eq">♪♪</span></div>`;
+  return `<div class="row" data-id="${s.id}"><span class="rk">${i + 1}</span><img loading="lazy" src="${art(a.artwork?.url, 92, 92)}" alt=""><div class="tt"><div class="n">${esc(a.name)}</div><div class="a"><span class="alink" data-nav="artist">${esc(a.artistName)}</span>${a.albumName ? ` · <span class="alink" data-nav="album">${esc(a.albumName)}</span>` : ''}</div></div><span class="rowbtns"><button class="rbtn" data-fav data-fid="${s.id}" data-fkind="${s.type === 'library-songs' ? 'library-songs' : 'songs'}" aria-label="收藏">${HEART_SVG}</button><button class="rbtn" data-add aria-label="添加到歌单">${PLUS_SVG}</button></span><span class="eq">♪♪</span></div>`;
 }
 function bindSongRows(root, songs) {
   root.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => {
@@ -536,6 +565,142 @@ function bindSongRows(root, songs) {
     if (!song) return;
     if (el.dataset.nav === 'artist') gotoArtistOf(song); else gotoAlbumOf(song);
   }));
+  root.querySelectorAll('[data-fav]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const song = songs.find(x => x.id === b.dataset.fid);
+    if (song) toggleFav(song);
+  }));
+  root.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const row = b.closest('.row');
+    const song = songs.find(x => x.id === row?.dataset.id);
+    if (song) openPlaylistPicker(song);
+  }));
+  hydrateFavs(songs);
+}
+
+/* ---------- 收藏与歌单管理 ---------- */
+const favCache = new Map();
+const favChecked = new Set();
+function favKey(song) { return (song.type === 'library-songs' ? 'library-songs' : 'songs') + ':' + song.id; }
+function paintFavs() {
+  document.querySelectorAll('[data-fav]').forEach(b => b.classList.toggle('on', !!favCache.get(b.dataset.fkind + ':' + b.dataset.fid)));
+  syncNpFav();
+}
+async function hydrateFavs(songs) {
+  if (!authorized || !songs?.length) return;
+  const cat = songs.filter(x => x.type !== 'library-songs').map(x => x.id);
+  const lib = songs.filter(x => x.type === 'library-songs').map(x => x.id);
+  try { if (cat.length) (await api('/v1/me/ratings/songs?ids=' + cat.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1) favCache.set('songs:' + r.id, true); }); } catch {}
+  try { if (lib.length) (await api('/v1/me/ratings/library-songs?ids=' + lib.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1) favCache.set('library-songs:' + r.id, true); }); } catch {}
+  paintFavs();
+}
+async function rateWrite(kind, id) {
+  const body = { type: 'ratings', attributes: { value: 1 } };
+  try { await api(`/v1/me/ratings/${kind}/${id}`, false, { method: 'PUT', body }); }
+  catch { await api(`/v1/me/ratings/${kind}/${id}`, false, { method: 'POST', body }); }
+}
+async function toggleFav(song) {
+  if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏');
+  const kind = song.type === 'library-songs' ? 'library-songs' : 'songs';
+  const key = kind + ':' + song.id;
+  try {
+    if (favCache.get(key)) { await api(`/v1/me/ratings/${kind}/${song.id}`, false, { method: 'DELETE' }); favCache.delete(key); toast('已取消收藏'); }
+    else { await rateWrite(kind, song.id); favCache.set(key, true); toast('已收藏'); }
+  } catch { toast('收藏操作失败，再试一次'); }
+  paintFavs();
+}
+async function syncNpFav() {
+  const btn = $('#npFav');
+  if (!btn || !cur) return;
+  const key = favKey(cur);
+  btn.classList.toggle('on', !!favCache.get(key));
+  if (authorized && !favCache.get(key) && !favChecked.has(key)) {
+    favChecked.add(key);
+    try {
+      const kind = cur.type === 'library-songs' ? 'library-songs' : 'songs';
+      const d = await api(`/v1/me/ratings/${kind}/${cur.id}`);
+      if (d.data?.attributes?.value === 1) { favCache.set(key, true); btn.classList.add('on'); paintFavs(); }
+    } catch {}
+  }
+}
+$('#npFav').addEventListener('click', () => { if (cur) toggleFav(cur); });
+function paintArtistFav(id, btn) {
+  const on = !!favCache.get('artists:' + id);
+  btn.innerHTML = HEART_SVG.replace('<svg ', '<svg style="width:17px;height:17px;vertical-align:-3px;margin-right:6px" ') + (on ? '已收藏歌手' : '收藏歌手');
+  btn.style.color = on ? 'var(--accent)' : '';
+  if (on) btn.querySelector('path')?.setAttribute('fill', 'currentColor');
+}
+async function toggleArtistFav(id, btn) {
+  if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏歌手');
+  try {
+    if (favCache.get('artists:' + id)) { await api(`/v1/me/ratings/artists/${id}`, false, { method: 'DELETE' }); favCache.delete('artists:' + id); toast('已取消收藏歌手'); }
+    else { await rateWrite('artists', id); favCache.set('artists:' + id, true); toast('已收藏歌手'); }
+  } catch { toast('收藏歌手失败，再试一次'); }
+  paintArtistFav(id, btn);
+}
+
+/* ---------- 底部弹层 ---------- */
+function openSheet(html) { $('#sheet').innerHTML = html; $('#sheetWrap').classList.add('open'); }
+function closeSheet() { $('#sheetWrap').classList.remove('open'); }
+$('#sheetWrap').addEventListener('click', e => { if (e.target.id === 'sheetWrap') closeSheet(); });
+
+async function openPlaylistPicker(song) {
+  if (!authorized) return toast('先在设置里连接 Apple 账户');
+  openSheet('<div class="sheettitle">添加到歌单</div><div class="sheetlist" id="sheetList"><div class="empty">加载歌单中…</div></div><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button></div>');
+  $('#sheetCancel').addEventListener('click', closeSheet);
+  try {
+    const d = await api('/v1/me/library/playlists?limit=50');
+    const list = d.data || [];
+    $('#sheetList').innerHTML = '<div class="sheetrow" id="sheetNew">＋ 新建歌单</div>' + list.map(p => `<div class="sheetrow" data-pid="${p.id}">${esc(p.attributes?.name || '歌单')}</div>`).join('');
+    $('#sheetNew').addEventListener('click', () => sheetCreatePlaylist(song));
+    $('#sheetList').querySelectorAll('[data-pid]').forEach(el => el.addEventListener('click', async () => {
+      try {
+        const cid = await resolveCatalogId(song);
+        await api(`/v1/me/library/playlists/${el.dataset.pid}/tracks`, false, { method: 'POST', body: { data: [{ id: cid, type: 'songs' }] } });
+        closeSheet(); toast('已添加到歌单');
+      } catch { toast('添加失败，再试一次'); }
+    }));
+  } catch { $('#sheetList').innerHTML = '<div class="empty">歌单加载失败</div>'; }
+}
+function sheetCreatePlaylist(prefillSong) {
+  openSheet('<div class="sheettitle">新建歌单</div><input id="sheetInput" class="sheetinput" placeholder="歌单名称" maxlength="60"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk">创建</button></div>');
+  const inp = $('#sheetInput'); setTimeout(() => inp.focus(), 60);
+  $('#sheetCancel').addEventListener('click', closeSheet);
+  $('#sheetOk').addEventListener('click', async () => {
+    const name = inp.value.trim();
+    if (!name) return toast('先给歌单起个名字');
+    try {
+      const body = { attributes: { name } };
+      if (prefillSong) { const cid = await resolveCatalogId(prefillSong); body.relationships = { tracks: { data: [{ id: cid, type: 'songs' }] } }; }
+      await api('/v1/me/library/playlists', false, { method: 'POST', body });
+      closeSheet(); libLoaded = false; toast(prefillSong ? '已新建歌单并添加这首歌' : '歌单已创建');
+    } catch { toast('创建歌单失败，再试一次'); }
+  });
+}
+function sheetRenamePlaylist(id, oldName) {
+  openSheet(`<div class="sheettitle">重命名歌单</div><input id="sheetInput" class="sheetinput" maxlength="60" value="${esc(oldName)}"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk">保存</button></div>`);
+  const inp = $('#sheetInput'); setTimeout(() => inp.focus(), 60);
+  $('#sheetCancel').addEventListener('click', closeSheet);
+  $('#sheetOk').addEventListener('click', async () => {
+    const name = inp.value.trim();
+    if (!name) return toast('名字不能为空');
+    try {
+      await api(`/v1/me/library/playlists/${id}`, false, { method: 'PATCH', body: { attributes: { name } } });
+      closeSheet(); libLoaded = false; toast('已改名'); openCollection('lplaylist', id);
+    } catch { toast('改名失败，再试一次'); }
+  });
+}
+function sheetDeletePlaylist(id, name) {
+  openSheet(`<div class="sheettitle">删除歌单</div><p style="font-size:14px;color:var(--ink2);line-height:1.6">确定要删除「${esc(name)}」吗？删除后无法恢复。</p><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk" style="background:#e0243c">删除</button></div>`);
+  $('#sheetCancel').addEventListener('click', closeSheet);
+  $('#sheetOk').addEventListener('click', async () => {
+    try {
+      await api(`/v1/me/library/playlists/${id}`, false, { method: 'DELETE' });
+      closeSheet(); libLoaded = false; toast('歌单已删除');
+      document.querySelector('[data-page="library"]')?.click();
+    } catch { toast('删除失败，再试一次'); }
+  });
 }
 
 /* ---------- name navigation (song -> artist page / album page) ---------- */
@@ -585,7 +750,7 @@ async function openArtist(id) {
     const pls = a?.relationships?.playlists?.data || [];
     const banner = at.artwork ? art(at.artwork.url, 1200, 900) : '';
     let html = `<div class="artistbanner"${banner ? ` style="background-image:url('${banner}')"` : ''}><div class="ab-shade"></div><div class="ab-name">${esc(at.name || '歌手')}</div><div class="ab-genre">${esc((at.genreNames || []).join(' · '))}</div></div>
-      <div class="colactions" style="max-width:340px;margin:14px auto 0"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button></div>`;
+      <div class="colactions" style="max-width:340px;margin:14px auto 0"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button><button class="btn ghost2" id="artFav"></button></div>`;
     if (top.data?.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows" id="artTopRows">' + top.data.map((x, i) => rowHTML(x, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(x => cardHTML(x, 'album')).join('') + '</div>';
     if (pls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + pls.map(x => cardHTML(x, 'playlist')).join('') + '</div>';
@@ -594,6 +759,15 @@ async function openArtist(id) {
     if (top.data?.length) {
       bindSongRows(box, top.data);
       $('#artPlayTop').addEventListener('click', () => playSongs(top.data, 0));
+    }
+    const afb = $('#artFav');
+    if (afb) {
+      paintArtistFav(id, afb);
+      afb.addEventListener('click', () => toggleArtistFav(id, afb));
+      if (authorized && !favChecked.has('artists:' + id)) {
+        favChecked.add('artists:' + id);
+        api('/v1/me/ratings/artists?ids=' + id).then(d => { if (d.data?.[0]?.attributes?.value === 1) { favCache.set('artists:' + id, true); paintArtistFav(id, afb); } }).catch(() => {});
+      }
     }
     bindCards(box);
     bindArtists(box);
@@ -656,6 +830,27 @@ async function openCollection(kind, id) {
       shuffle = true; $('#btnShuffle').classList.add('on');
       playSongs(colTracks, Math.floor(Math.random() * colTracks.length));
     });
+    if (kind === 'lplaylist') {
+      const acts = box.querySelector('.colactions');
+      acts.style.flexWrap = 'wrap';
+      const eb = document.createElement('button'); eb.className = 'btn ghost2'; eb.textContent = '编辑名称';
+      const db = document.createElement('button'); db.className = 'btn ghost2'; db.textContent = '删除歌单'; db.style.color = '#e0243c';
+      acts.append(eb, db);
+      eb.addEventListener('click', () => sheetRenamePlaylist(id, a.name || ''));
+      db.addEventListener('click', () => sheetDeletePlaylist(id, a.name || ''));
+      box.querySelectorAll('.row').forEach(r => {
+        const b = document.createElement('button');
+        b.className = 'rbtn'; b.setAttribute('aria-label', '从歌单移除'); b.innerHTML = X_SVG;
+        b.addEventListener('click', async e => {
+          e.stopPropagation();
+          try {
+            await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body: { data: [{ id: r.dataset.id, type: 'library-songs' }] } });
+            r.remove(); toast('已从歌单移除');
+          } catch { toast('移除失败，再试一次'); }
+        });
+        r.appendChild(b);
+      });
+    }
   } catch { box.innerHTML = '<div class="empty">打开失败，检查网络后重试</div>'; }
 }
 
@@ -802,11 +997,14 @@ async function loadLibrary() {
       api('/v1/me/library/artists?limit=50').catch(() => ({ data: [] }))
     ]);
     let html = '';
+    html += '<div style="margin:2px 0 8px"><button class="btn" id="newPlBtn">＋ 新建歌单</button></div>';
     if (pls.data?.length) html += '<h2 class="sec">我的歌单</h2><div class="grid">' + pls.data.map(p => cardHTML(p, 'lplaylist')).join('') + '</div>';
     if (larts.data?.length) html += '<h2 class="sec">资料库歌手</h2><div class="grid">' + larts.data.map(artistCardHTML).join('') + '</div>';
     if (songs.data?.length) html += '<h2 class="sec">资料库歌曲</h2><div class="rows">' + songs.data.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     $('#libContent').innerHTML = html || '<div class="empty">资料库是空的</div>';
     bindSongRows($('#libContent'), songs.data || []);
+    const npb = $('#newPlBtn');
+    if (npb) npb.addEventListener('click', () => sheetCreatePlaylist(null));
     $('#libContent').querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection('lplaylist', c.dataset.id)));
     $('#libContent').querySelectorAll('.acard').forEach(c => c.addEventListener('click', async () => {
       try {
@@ -941,6 +1139,7 @@ if ('mediaSession' in navigator) {
 function updateNP() {
   if (!cur) return;
   resumeTries = 0; stillTicks = 0;
+  syncNpFav();
   if ($('#queueView').classList.contains('show')) renderQueue();
   const a = cur.attributes || {};
   const img = art(a.artwork?.url, 640, 640);
