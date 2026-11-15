@@ -405,11 +405,11 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 #rail .logo{background:linear-gradient(145deg, rgba(255,255,255,.36), rgba(255,255,255,.07) 55%, rgba(255,255,255,.20))}
 
 /* ===== 卡片网格固定两列 ===== */
-.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid,.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 
-/* ===== 侧栏改短：高度贴合内容 ===== */
-#rail{bottom:auto;padding-bottom:14px}
-#rail .navbtn{padding:9px 0 7px}
+/* ===== 侧栏：稍长一些 + 垂直居中 ===== */
+#rail{top:50%;bottom:auto;height:min(66vh,620px);transform:translateY(-50%);padding-bottom:12px}
+#rail .navbtn{padding:10px 0 8px}
 
 /* ===== 自定义背景 ===== */
 #bgPrev{display:none;height:110px;border-radius:16px;background-size:cover;background-position:center;box-shadow:var(--glassbtn-shadow);margin-top:4px}
