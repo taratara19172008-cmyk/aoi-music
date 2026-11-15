@@ -142,6 +142,14 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
 .sh-clear{border:0;background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
 .sh-chips{display:flex;flex-wrap:wrap;gap:8px}
 .sh-chip{border:0;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.42);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55), 0 4px 10px rgba(20,10,50,.08);font-size:13.5px;color:var(--ink);cursor:pointer;font-family:inherit}
+.srow{display:flex;align-items:center;gap:12px;padding:8px 6px;border-radius:14px;cursor:pointer}
+.srow:active{background:rgba(255,255,255,.35)}
+.srow img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:0 0 auto}
+.srow img.round{border-radius:50%}
+.srow .tt{flex:1;min-width:0}
+.srow .n{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .a{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.srow .init{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:19px;font-weight:800;color:#fff;background:linear-gradient(140deg, var(--accent), #7cc4ff);flex:0 0 auto}
 .colhero .cn{font-size:23px;font-weight:800;line-height:1.2}
 .colhero .ca{font-size:14.5px;color:var(--accent);font-weight:600;margin-top:4px}
 .colhero .cm{font-size:12.5px;color:var(--ink2);margin-top:5px;line-height:1.5}
@@ -665,37 +673,61 @@ $('#searchInput').addEventListener('input', e => {
   if (!term) { $('#searchContent').innerHTML = '<div class="empty">输入关键词开始搜索</div>'; return; }
   searchTimer = setTimeout(() => doSearch(term), 450);
 });
-function getSearchHist() { try { return JSON.parse(localStorage.getItem('aoi-search-hist') || '[]'); } catch { return []; } }
+function getSearchHist() { try { return JSON.parse(localStorage.getItem('aoi-search-entities') || '[]'); } catch { return []; } }
+function recordSearchEntity(kind, item) {
+  if (!item?.id) return;
+  const a = item.attributes || {};
+  const entry = { kind, id: item.id, name: a.name || '', sub: a.artistName || a.curatorName || '', art: a.artwork?.url || '' };
+  if (kind === 'song') entry.song = { id: item.id, type: 'songs', attributes: { name: a.name, artistName: a.artistName, albumName: a.albumName, artwork: a.artwork, previews: a.previews } };
+  const h = getSearchHist().filter(x => !(x.kind === kind && x.id === item.id));
+  h.unshift(entry);
+  try { localStorage.setItem('aoi-search-entities', JSON.stringify(h.slice(0, 12))); } catch {}
+  renderSearchHist();
+}
 function renderSearchHist() {
   const box = $('#searchHistory');
   if (!box) return;
   const h = getSearchHist();
   if (!h.length) { box.innerHTML = ''; return; }
-  box.innerHTML = '<div class="sh-head"><span>搜索记录</span><button class="sh-clear" id="shClear">清除</button></div><div class="sh-chips">' + h.map(t => `<button class="sh-chip">${esc(t)}</button>`).join('') + '</div>';
-  box.querySelectorAll('.sh-chip').forEach(c => c.addEventListener('click', () => { $('#searchInput').value = c.textContent; doSearch(c.textContent); }));
-  $('#shClear').addEventListener('click', () => { localStorage.removeItem('aoi-search-hist'); renderSearchHist(); });
-}
-function saveSearchHist(term) {
-  const h = getSearchHist().filter(t => t !== term);
-  h.unshift(term);
-  try { localStorage.setItem('aoi-search-hist', JSON.stringify(h.slice(0, 10))); } catch {}
-  renderSearchHist();
+  const kindLabel = { song: '歌曲', album: '专辑', playlist: '歌单', artist: '艺人' };
+  box.innerHTML = '<div class="sh-head"><span>最近搜索</span><button class="sh-clear" id="shClear">清除</button></div>' + h.map((e, i) => {
+    const face = e.kind === 'artist'
+      ? (e.art ? `<img class="round" loading="lazy" src="${art(e.art, 92, 92)}" alt="">` : `<div class="init">${esc((e.name || '?').slice(0, 1))}</div>`)
+      : `<img loading="lazy" src="${e.art ? art(e.art, 92, 92) : 'assets/icon-512.png'}" alt="">`;
+    return `<div class="srow" data-i="${i}">${face}<div class="tt"><div class="n">${esc(e.name)}</div><div class="a">${kindLabel[e.kind] || ''}${e.sub ? ' · ' + esc(e.sub) : ''}</div></div></div>`;
+  }).join('');
+  box.querySelectorAll('.srow').forEach(r => r.addEventListener('click', () => {
+    const e = getSearchHist()[+r.dataset.i];
+    if (!e) return;
+    if (e.kind === 'song' && e.song) playSongs([e.song], 0);
+    else if (e.kind === 'artist') openArtist(e.id);
+    else openCollection(e.kind, e.id);
+  }));
+  $('#shClear').addEventListener('click', () => { localStorage.removeItem('aoi-search-entities'); renderSearchHist(); });
 }
 renderSearchHist();
 async function doSearch(term) {
-  saveSearchHist(term);
   $('#searchContent').innerHTML = '<div class="empty">搜索中…</div>';
   try {
-    const d = await api(`/v1/catalog/${sf}/search?term=${encodeURIComponent(term)}&types=songs,albums,artists&limit=25`);
-    const songs = d.results.songs?.data || [], albums = d.results.albums?.data || [], artists = d.results.artists?.data || [];
+    const d = await api(`/v1/catalog/${sf}/search?term=${encodeURIComponent(term)}&types=songs,albums,artists,playlists&limit=25`);
+    const songs = d.results.songs?.data || [], albums = d.results.albums?.data || [], artists = d.results.artists?.data || [], spls = d.results.playlists?.data || [];
     let html = '';
     if (artists.length) html += '<h2 class="sec">歌手</h2><div class="grid">' + artists.map(artistCardHTML).join('') + '</div>';
     if (songs.length) html += '<h2 class="sec">歌曲</h2><div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
+    if (spls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + spls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
     $('#searchContent').innerHTML = html || '<div class="empty">没找到相关内容</div>';
     bindSongRows($('#searchContent'), songs);
     bindCards($('#searchContent'));
     bindArtists($('#searchContent'));
+    const sc = $('#searchContent');
+    sc.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => { const x = songs.find(v => v.id === r.dataset.id); if (x) recordSearchEntity('song', x); }));
+    sc.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => {
+      const pool = c.dataset.kind === 'playlist' ? spls : albums;
+      const x = pool.find(v => v.id === c.dataset.id);
+      if (x) recordSearchEntity(c.dataset.kind, x);
+    }));
+    sc.querySelectorAll('.acard').forEach(c => c.addEventListener('click', () => { const x = artists.find(v => v.id === c.dataset.aid); if (x) recordSearchEntity('artist', x); }));
   } catch { $('#searchContent').innerHTML = '<div class="empty">搜索失败，检查网络后重试</div>'; }
 }
 
