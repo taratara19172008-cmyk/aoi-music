@@ -294,7 +294,6 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   <section class="page on" id="page-home">
     <h1 class="greet serif" id="greet">晚上好</h1>
     <p class="sub" id="homeSub">正在加载热门音乐…</p>
-    <div id="homeHistory"></div>
     <div id="homeContent"></div>
   </section>
 
@@ -489,13 +488,6 @@ $('#signOutBtn').addEventListener('click', async () => { try { await music.unaut
 let homeLoaded = false;
 async function loadHome() {
   if (homeLoaded) return; homeLoaded = true;
-  renderHomeHistory();
-  if (authorized) {
-    try {
-      const rd = await api('/v1/me/recent/played/tracks?limit=10');
-      if (rd.data?.length) { histApple = true; renderHomeHistory(rd.data); }
-    } catch {}
-  }
   const h = new Date().getHours();
   $('#greet').textContent = h < 6 ? '夜深了' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
   try {
@@ -506,11 +498,19 @@ async function loadHome() {
     $('#homeSub').textContent = '为你精选 · 今日热门';
     let html = '';
     if (pls.length) html += '<h2 class="sec">精选歌单</h2><div class="hscroll">' + pls.slice(0, 10).map(p => cardHTML(p, 'playlist')).join('') + '</div>';
+    html += '<div id="homeHistory"></div>';
     if (songs.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows">' + songs.slice(0, 12).map((s, i) => rowHTML(s, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">热门专辑</h2><div class="hscroll">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
     $('#homeContent').innerHTML = html;
     bindSongRows($('#homeContent'), songs);
     bindCards($('#homeContent'));
+    renderHomeHistory();
+    if (authorized) {
+      try {
+        const rd = await api('/v1/me/recent/played/tracks?limit=10');
+        if (rd.data?.length) { histApple = true; renderHomeHistory(rd.data); }
+      } catch {}
+    }
   } catch (e) { console.error(e); $('#homeSub').textContent = '加载失败，检查网络后刷新'; homeLoaded = false; }
 }
 function cardHTML(item, kind) {
