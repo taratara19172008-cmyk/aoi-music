@@ -380,6 +380,29 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 .swipe .row{background:#eef1f6}
 .swipe .row:active{background:color-mix(in srgb, var(--accent) 9%, #eef1f6)}
 .swipe-del{position:absolute;top:0;right:0;bottom:0;width:72px;border:none;background:#e0243c;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+
+/* ===== 侧栏按键大而紧凑（贴满栏宽的大透镜） ===== */
+#rail{gap:3px;padding:12px 0 10px}
+#rail .logo{width:52px;height:52px;border-radius:17px;margin-bottom:8px;font-size:27px}
+#rail .navbtn{width:66px;padding:10px 0 8px;border-radius:20px;font-size:11px;gap:4px}
+#rail .navbtn svg{width:29px;height:29px}
+
+/* ===== 去白：清水玻璃（降白填充、降模糊、强色彩渗光、灰青描边） ===== */
+:root{
+  --glass:linear-gradient(118deg, rgba(255,255,255,.16), rgba(255,255,255,.03) 42%, rgba(255,255,255,.015) 58%, rgba(255,255,255,.10));
+  --glassbtn:linear-gradient(145deg, rgba(255,255,255,.34), rgba(255,255,255,.06) 52%, rgba(255,255,255,.18));
+  --shadow:0 18px 44px rgba(30,10,40,.16), 0 0 0 1px rgba(110,135,160,.16), 0 6px 26px color-mix(in srgb, var(--accent) 20%, transparent), var(--rim);
+  --glassbtn-shadow:0 8px 22px rgba(25,10,45,.15), 0 0 0 1px rgba(110,135,160,.13), var(--rim);
+}
+#bgfx{background:linear-gradient(165deg,#fdfbfc,#fdeef1 52%,#e8f3ff)}
+#bgfx i{opacity:.7}
+#rail::before{-webkit-backdrop-filter:blur(2.5px) saturate(215%);backdrop-filter:blur(2.5px) saturate(215%)}
+#mini::before{-webkit-backdrop-filter:blur(2.5px) saturate(215%);backdrop-filter:blur(2.5px) saturate(215%)}
+.panel{-webkit-backdrop-filter:blur(6px) saturate(200%);backdrop-filter:blur(6px) saturate(200%)}
+#rail::after{opacity:.75}
+#mini::after{opacity:.6}
+#rail .navbtn.on{background:linear-gradient(145deg, rgba(255,255,255,.36), rgba(255,255,255,.07) 55%, rgba(255,255,255,.20))}
+#rail .logo{background:linear-gradient(145deg, rgba(255,255,255,.36), rgba(255,255,255,.07) 55%, rgba(255,255,255,.20))}
 </style>
 </head>
 <body>
