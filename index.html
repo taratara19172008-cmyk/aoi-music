@@ -1016,18 +1016,28 @@ async function openCollection(kind, id) {
       acts.append(eb, db);
       eb.addEventListener('click', () => sheetRenamePlaylist(id, a.name || ''));
       db.addEventListener('click', () => sheetDeletePlaylist(id, a.name || ''));
-      box.querySelectorAll('.row').forEach(r => {
+      box.querySelectorAll('.row').forEach((r, ri) => {
         const wrap = document.createElement('div');
         wrap.className = 'swipe';
         const del = document.createElement('button');
         del.className = 'swipe-del'; del.textContent = '删除';
         r.parentNode.insertBefore(wrap, r);
         wrap.append(del, r);
+        const t = tracks[ri];
+        const body = { data: [{ id: r.dataset.id, type: t?.type === 'songs' ? 'songs' : 'library-songs' }] };
         makeSwipe(wrap, r, async () => {
           try {
-            await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body: { data: [{ id: r.dataset.id, type: 'library-songs' }] } });
+            await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body });
             wrap.remove(); toast('已从歌单移除');
-          } catch { toast('移除失败，再试一次'); }
+          } catch {
+            try {
+              await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body });
+              wrap.remove(); toast('已从歌单移除');
+            } catch (e2) {
+              toast('移除失败：' + (e2.appleDetail || e2.appleCode || e2.message || '未知错误'));
+              closeSwipe(wrap);
+            }
+          }
         });
       });
     }
