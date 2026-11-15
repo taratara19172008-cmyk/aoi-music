@@ -137,6 +137,15 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
 .colhero .cm{font-size:12.5px;color:var(--ink2);margin-top:5px;line-height:1.5}
 .colactions{display:flex;gap:10px;margin:14px 0 6px}
 .colactions .btn{flex:1;justify-content:center}
+.acard{cursor:pointer;text-align:center}
+.acard img,.acard .ainit{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;box-shadow:0 10px 22px rgba(20,10,50,.18)}
+.acard .ainit{display:grid;place-items:center;font-size:30px;font-weight:800;color:#fff;background:linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #7cc4ff))}
+.acard .t{font-size:13.5px;font-weight:600;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artisthero{text-align:center;padding:10px 0 4px}
+.artisthero img,.artisthero .ainit{width:150px;height:150px;border-radius:50%;object-fit:cover;margin:0 auto;box-shadow:0 18px 38px rgba(20,10,50,.3)}
+.artisthero .ainit{display:grid;place-items:center;font-size:52px;font-weight:800;color:#fff;background:linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #7cc4ff))}
+.artisthero .an{font-size:26px;font-weight:800;margin-top:13px}
+.artisthero .ag{font-size:13.5px;color:var(--ink2);margin-top:3px}
 .btn.ghost2{background:linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.16) 55%, rgba(255,255,255,.34));color:var(--accent);
   border:1px solid rgba(255,255,255,.65);box-shadow:var(--glassbtn-shadow);text-shadow:none}
 #rail .avatar img{width:100%;height:100%;object-fit:cover;display:block}
@@ -261,6 +270,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   <div class="logo">♪</div>
   <button class="navbtn on" data-page="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-4v-6H10v6H6v-9H3z"/></svg>首页</button>
   <button class="navbtn" data-page="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21" stroke-linecap="round"/></svg>搜索</button>
+  <button class="navbtn" data-page="radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.8 18.2a9.4 9.4 0 0 1 0-12.4M18.2 5.8a9.4 9.4 0 0 1 0 12.4" stroke-linecap="round"/></svg>电台</button>
   <button class="navbtn" data-page="library"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2.2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2.2"/></svg>资料库</button>
   <div class="sp"></div>
   <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke-linecap="round"/></svg>设置</button>
@@ -286,6 +296,12 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
     <h1 class="greet">资料库</h1>
     <p class="sub" id="libSub">你账户里的歌单和歌曲</p>
     <div id="libContent"></div>
+  </section>
+
+  <section class="page" id="page-radio">
+    <h1 class="greet">电台</h1>
+    <p class="sub">为你推荐的歌单与电台</p>
+    <div id="radioContent"><div class="empty">加载中…</div></div>
   </section>
 
   <section class="page" id="page-collection">
@@ -411,6 +427,7 @@ document.querySelectorAll('#rail .navbtn').forEach(b => b.addEventListener('clic
   document.querySelectorAll('#rail .navbtn').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + b.dataset.page));
   if (b.dataset.page === 'library') loadLibrary();
+  if (b.dataset.page === 'radio') loadRadio();
   window.scrollTo({ top: 0 });
 }));
 
@@ -485,6 +502,47 @@ function bindCards(root) {
   root.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection(c.dataset.kind, c.dataset.id)));
 }
 
+function artistCardHTML(a) {
+  const at = a.attributes || {};
+  const face = at.artwork ? `<img loading="lazy" src="${art(at.artwork.url, 240, 240)}" alt="">` : `<div class="ainit">${esc((at.name || '?').slice(0, 1))}</div>`;
+  return `<div class="acard" data-aid="${a.id}">${face}<div class="t">${esc(at.name || '')}</div></div>`;
+}
+function bindArtists(root) {
+  root.querySelectorAll('.acard').forEach(c => c.addEventListener('click', () => openArtist(c.dataset.aid)));
+}
+async function openArtist(id) {
+  colFrom = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
+  if (colFrom === 'collection') colFrom = 'home';
+  showOnlyPage('page-collection');
+  const box = $('#colContent');
+  box.innerHTML = '<div class="empty">加载歌手主页中…</div>';
+  try {
+    const [base, top, sim] = await Promise.all([
+      api(`/v1/catalog/${sf}/artists/${id}?include=albums,playlists`),
+      api(`/v1/catalog/${sf}/artists/${id}/view/top-songs?limit=10`).catch(() => ({ data: [] })),
+      api(`/v1/catalog/${sf}/artists/${id}/view/similar-artists?limit=12`).catch(() => ({ data: [] }))
+    ]);
+    const a = base.data?.[0];
+    const at = a?.attributes || {};
+    const albums = a?.relationships?.albums?.data || [];
+    const pls = a?.relationships?.playlists?.data || [];
+    const face = at.artwork ? `<img src="${art(at.artwork.url, 400, 400)}" alt="">` : `<div class="ainit">${esc((at.name || '?').slice(0, 1))}</div>`;
+    let html = `<div class="artisthero">${face}<div class="an">${esc(at.name || '歌手')}</div><div class="ag">${esc((at.genreNames || []).join(' · '))}</div>
+      <div class="colactions" style="max-width:340px;margin-left:auto;margin-right:auto"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button></div></div>`;
+    if (top.data?.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows" id="artTopRows">' + top.data.map((x, i) => rowHTML(x, i)).join('') + '</div>';
+    if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(x => cardHTML(x, 'album')).join('') + '</div>';
+    if (pls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + pls.map(x => cardHTML(x, 'playlist')).join('') + '</div>';
+    if (sim.data?.length) html += '<h2 class="sec">相似歌手</h2><div class="grid">' + sim.data.map(artistCardHTML).join('') + '</div>';
+    box.innerHTML = html;
+    if (top.data?.length) {
+      bindSongRows(box, top.data);
+      $('#artPlayTop').addEventListener('click', () => playSongs(top.data, 0));
+    }
+    bindCards(box);
+    bindArtists(box);
+  } catch { box.innerHTML = '<div class="empty">歌手主页打开失败，检查网络后重试</div>'; }
+}
+
 /* ---------- collection (playlist / album) detail ---------- */
 let colTracks = [], colFrom = 'home';
 function showOnlyPage(id) {
@@ -550,14 +608,80 @@ async function doSearch(term) {
   $('#searchContent').innerHTML = '<div class="empty">搜索中…</div>';
   try {
     const d = await api(`/v1/catalog/${sf}/search?term=${encodeURIComponent(term)}&types=songs,albums,artists&limit=25`);
-    const songs = d.results.songs?.data || [], albums = d.results.albums?.data || [];
+    const songs = d.results.songs?.data || [], albums = d.results.albums?.data || [], artists = d.results.artists?.data || [];
     let html = '';
+    if (artists.length) html += '<h2 class="sec">歌手</h2><div class="grid">' + artists.map(artistCardHTML).join('') + '</div>';
     if (songs.length) html += '<h2 class="sec">歌曲</h2><div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
     $('#searchContent').innerHTML = html || '<div class="empty">没找到相关内容</div>';
     bindSongRows($('#searchContent'), songs);
     bindCards($('#searchContent'));
+    bindArtists($('#searchContent'));
   } catch { $('#searchContent').innerHTML = '<div class="empty">搜索失败，检查网络后重试</div>'; }
+}
+
+/* ---------- radio & recommendations ---------- */
+let radioLoaded = false, radioWasAuth = null;
+const stationById = {};
+function stationCardHTML(st) {
+  const a = st.attributes || {};
+  stationById[st.id] = st;
+  const img = a.artwork ? `<img loading="lazy" src="${art(a.artwork.url, 320, 320)}" alt="">` : '<img src="assets/icon-512.png" alt="">';
+  return `<div class="card station" data-sid="${st.id}">${img}<div class="t">${esc(a.name || '电台')}</div><div class="a">电台 · 点播即播</div></div>`;
+}
+async function loadRadio() {
+  if (radioLoaded && radioWasAuth === authorized) return;
+  radioLoaded = true; radioWasAuth = authorized;
+  const box = $('#radioContent');
+  box.innerHTML = '<div class="empty">加载推荐中…</div>';
+  try {
+    let html = '';
+    const stations = [];
+    const rowGroups = [];
+    if (authorized) {
+      const d = await api('/v1/me/recommendations?limit=30');
+      for (const g of (d.data || [])) {
+        let contents = g.relationships?.contents?.data || [];
+        if (!contents.length && g.relationships?.contents?.href) {
+          try { const cd = await api(g.relationships.contents.href); contents = cd.data || []; } catch {}
+        }
+        const title = g.attributes?.title?.stringForDisplay || g.attributes?.reason?.stringForDisplay || '为你推荐';
+        const cards = [], rows = [];
+        for (const it of contents) {
+          if (it.type === 'stations') { stations.push(it); }
+          else if (it.type === 'playlists') cards.push(cardHTML(it, 'playlist'));
+          else if (it.type === 'albums') cards.push(cardHTML(it, 'album'));
+          else if (it.type === 'songs') rows.push(it);
+        }
+        if (cards.length) html += `<h2 class="sec">${esc(title)}</h2><div class="hscroll">${cards.join('')}</div>`;
+        if (rows.length) { const gid = 'rec-rows-' + rowGroups.length; rowGroups.push([gid, rows]); html += `<h2 class="sec">${esc(title)}</h2><div class="rows" id="${gid}">${rows.map((x, i) => rowHTML(x, i)).join('')}</div>`; }
+      }
+    } else {
+      const d = await api(`/v1/catalog/${sf}/charts?types=playlists&limit=24`);
+      const pls = d.results.playlists?.[0]?.data || [];
+      if (pls.length) html += '<h2 class="sec">推荐歌单</h2><div class="grid">' + pls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
+      html += '<div class="empty" style="margin-top:26px">连接 Apple 账户后，这里会出现专属推荐和你的个人电台</div>';
+    }
+    if (stations.length) {
+      const seen = new Set(); const uniq = stations.filter(st => !seen.has(st.id) && seen.add(st.id));
+      html += '<h2 class="sec">电台</h2><div class="grid">' + uniq.map(stationCardHTML).join('') + '</div>';
+    }
+    box.innerHTML = html || '<div class="empty">暂时没有推荐内容</div>';
+    bindCards(box);
+    for (const [gid, rows] of rowGroups) { const el = document.getElementById(gid); if (el) bindSongRows(el, rows); }
+    box.querySelectorAll('.card.station').forEach(c => c.addEventListener('click', () => playStation(stationById[c.dataset.sid])));
+  } catch (e) { console.error(e); box.innerHTML = '<div class="empty">推荐加载失败，检查网络后重试</div>'; radioLoaded = false; }
+}
+async function playStation(st) {
+  if (!st) return;
+  if (!authorized || !music) { toast('先在「设置」里连接 Apple 账户才能听电台'); return; }
+  try {
+    engine = 'musickit'; queue = []; qIndex = -1;
+    await music.setQueue({ station: st.id });
+    await music.play();
+    toast('正在播放电台：' + (st.attributes?.name || ''));
+    setTimeout(() => { syncFromMusicKit(); openNP(); }, 600);
+  } catch (e) { console.error(e); toast('电台播放失败，稍后再试'); }
 }
 
 /* ---------- library ---------- */
@@ -567,16 +691,25 @@ async function loadLibrary() {
   if (libLoaded) return; libLoaded = true;
   $('#libContent').innerHTML = '<div class="empty">加载资料库中…</div>';
   try {
-    const [pls, songs] = await Promise.all([
+    const [pls, songs, larts] = await Promise.all([
       api('/v1/me/library/playlists?limit=50').catch(() => ({ data: [] })),
-      api('/v1/me/library/songs?limit=100').catch(() => ({ data: [] }))
+      api('/v1/me/library/songs?limit=100').catch(() => ({ data: [] })),
+      api('/v1/me/library/artists?limit=50').catch(() => ({ data: [] }))
     ]);
     let html = '';
     if (pls.data?.length) html += '<h2 class="sec">我的歌单</h2><div class="grid">' + pls.data.map(p => cardHTML(p, 'lplaylist')).join('') + '</div>';
+    if (larts.data?.length) html += '<h2 class="sec">资料库歌手</h2><div class="grid">' + larts.data.map(artistCardHTML).join('') + '</div>';
     if (songs.data?.length) html += '<h2 class="sec">资料库歌曲</h2><div class="rows">' + songs.data.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     $('#libContent').innerHTML = html || '<div class="empty">资料库是空的</div>';
     bindSongRows($('#libContent'), songs.data || []);
     $('#libContent').querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection('lplaylist', c.dataset.id)));
+    $('#libContent').querySelectorAll('.acard').forEach(c => c.addEventListener('click', async () => {
+      try {
+        const d = await api(`/v1/me/library/artists/${c.dataset.aid}?include=catalog`);
+        const cid = d.data?.[0]?.relationships?.catalog?.data?.[0]?.id;
+        if (cid) openArtist(cid); else toast('这位歌手的曲库主页暂时打不开');
+      } catch { toast('打开歌手主页失败'); }
+    }));
   } catch { $('#libContent').innerHTML = '<div class="empty">资料库加载失败</div>'; libLoaded = false; }
 }
 
@@ -614,6 +747,15 @@ function syncFromMusicKit() {
   if (!item) return;
   const idx = queue.findIndex(s => s.id === item.id);
   if (idx >= 0 && idx !== qIndex) { qIndex = idx; cur = queue[idx]; updateNP(); markPlayingRow(); tryMotion(cur); loadLyrics(cur); }
+  else if (idx < 0) {
+    cur = { id: item.id, type: 'songs', attributes: {
+      name: item.title || item.attributes?.name || '—',
+      artistName: item.artistName || item.attributes?.artistName || '',
+      albumName: item.albumName || '',
+      artwork: { url: item.artwork?.url || item.artworkURL || '' }
+    } };
+    updateNP(); tryMotion(cur); loadLyrics(cur);
+  }
 }
 function isPlaying() { return engine === 'musickit' ? !!(music && music.isPlaying) : !audio.paused; }
 function curTime() { return engine === 'musickit' ? (music.currentPlaybackTime || 0) : (audio.currentTime || 0); }
@@ -625,8 +767,8 @@ async function togglePlay() {
   syncPlayUI();
 }
 async function next(auto = false) {
-  if (!queue.length) return;
   if (engine === 'musickit' && !auto) { await music.skipToNextItem(); return; }
+  if (!queue.length) return;
   if (engine === 'musickit' && auto) return; // MusicKit advances by itself
   if (shuffle && queue.length > 1) { let n; do { n = Math.floor(Math.random() * queue.length); } while (n === qIndex); qIndex = n; }
   else if (qIndex < queue.length - 1) qIndex++;
