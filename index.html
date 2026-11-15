@@ -132,6 +132,16 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
 .backbtn:active{transform:scale(.95)}
 .colhero{display:flex;gap:16px;align-items:flex-end;margin-bottom:8px}
 .colhero img{width:132px;height:132px;border-radius:18px;object-fit:cover;box-shadow:0 16px 34px rgba(20,10,50,.28)}
+.colhero video{width:132px;height:132px;border-radius:18px;object-fit:cover;box-shadow:0 16px 34px rgba(20,10,50,.28)}
+.artistbanner{position:relative;margin:2px -2px 4px;border-radius:22px;overflow:hidden;min-height:308px;background:linear-gradient(150deg, var(--accent), #7cc4ff);background-size:cover;background-position:center 22%;display:flex;flex-direction:column;justify-content:flex-end;padding:20px;box-shadow:0 18px 38px rgba(20,10,50,.28)}
+.ab-shade{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.04) 42%, rgba(0,0,0,.58))}
+.ab-name{position:relative;font-size:clamp(38px,11vw,58px);font-weight:900;letter-spacing:-.02em;line-height:1.02;color:#fff;text-shadow:0 3px 22px rgba(0,0,0,.45)}
+.ab-genre{position:relative;margin-top:6px;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.88)}
+#searchHistory{margin-top:14px}
+.sh-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:8px}
+.sh-clear{border:0;background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.sh-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sh-chip{border:0;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.42);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55), 0 4px 10px rgba(20,10,50,.08);font-size:13.5px;color:var(--ink);cursor:pointer;font-family:inherit}
 .colhero .cn{font-size:23px;font-weight:800;line-height:1.2}
 .colhero .ca{font-size:14.5px;color:var(--accent);font-weight:600;margin-top:4px}
 .colhero .cm{font-size:12.5px;color:var(--ink2);margin-top:5px;line-height:1.5}
@@ -284,6 +294,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   <section class="page on" id="page-home">
     <h1 class="greet serif" id="greet">晚上好</h1>
     <p class="sub" id="homeSub">正在加载热门音乐…</p>
+    <div id="homeHistory"></div>
     <div id="homeContent"></div>
   </section>
 
@@ -292,6 +303,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
     <p class="sub">歌曲、专辑、艺人，全曲库搜索</p>
     <div style="height:16px"></div>
     <div class="searchbar"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#8e8e93" stroke-width="2.4" style="flex:0 0 auto"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21" stroke-linecap="round"/></svg><input id="searchInput" type="search" placeholder="搜索歌曲 / 专辑 / 艺人…" enterkeyhint="search"></div>
+    <div id="searchHistory"></div>
     <div id="searchContent"><div class="empty">输入关键词开始搜索</div></div>
   </section>
 
@@ -477,6 +489,13 @@ $('#signOutBtn').addEventListener('click', async () => { try { await music.unaut
 let homeLoaded = false;
 async function loadHome() {
   if (homeLoaded) return; homeLoaded = true;
+  renderHomeHistory();
+  if (authorized) {
+    try {
+      const rd = await api('/v1/me/recent/played/tracks?limit=10');
+      if (rd.data?.length) { histApple = true; renderHomeHistory(rd.data); }
+    } catch {}
+  }
   const h = new Date().getHours();
   $('#greet').textContent = h < 6 ? '夜深了' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
   try {
@@ -562,9 +581,9 @@ async function openArtist(id) {
     const at = a?.attributes || {};
     const albums = a?.relationships?.albums?.data || [];
     const pls = a?.relationships?.playlists?.data || [];
-    const face = at.artwork ? `<img src="${art(at.artwork.url, 400, 400)}" alt="">` : `<div class="ainit">${esc((at.name || '?').slice(0, 1))}</div>`;
-    let html = `<div class="artisthero">${face}<div class="an">${esc(at.name || '歌手')}</div><div class="ag">${esc((at.genreNames || []).join(' · '))}</div>
-      <div class="colactions" style="max-width:340px;margin-left:auto;margin-right:auto"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button></div></div>`;
+    const banner = at.artwork ? art(at.artwork.url, 1200, 900) : '';
+    let html = `<div class="artistbanner"${banner ? ` style="background-image:url('${banner}')"` : ''}><div class="ab-shade"></div><div class="ab-name">${esc(at.name || '歌手')}</div><div class="ab-genre">${esc((at.genreNames || []).join(' · '))}</div></div>
+      <div class="colactions" style="max-width:340px;margin:14px auto 0"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button></div>`;
     if (top.data?.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows" id="artTopRows">' + top.data.map((x, i) => rowHTML(x, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(x => cardHTML(x, 'album')).join('') + '</div>';
     if (pls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + pls.map(x => cardHTML(x, 'playlist')).join('') + '</div>';
@@ -609,6 +628,8 @@ async function openCollection(kind, id) {
       tracks = rel.filter(t => t.type === 'songs');
     }
     colTracks = tracks;
+    let motionUrl = null;
+    if (kind === 'album') motionUrl = await fetchMotion(id);
     const a = head?.attributes || {};
     const img = a.artwork ? art(a.artwork.url, 400, 400) : 'assets/icon-512.png';
     const sub = a.artistName || a.curatorName || '';
@@ -617,7 +638,7 @@ async function openCollection(kind, id) {
     const meta = [a.releaseDate ? a.releaseDate.slice(0, 4) : '', a.genreNames?.[0] || '', tracks.length ? tracks.length + ' 首歌曲' : ''].filter(Boolean).join(' · ');
     const desc = a.description?.standard || a.description?.short || a.editorialNotes?.standard || '';
     box.innerHTML = `
-      <div class="colhero"><img src="${img}" alt=""><div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${subHTML}</div><div class="cm">${esc(meta)}</div></div></div>
+      <div class="colhero">${motionUrl ? `<video src="${motionUrl}" autoplay loop muted playsinline poster="${img}"></video>` : `<img src="${img}" alt="">`}<div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${subHTML}</div><div class="cm">${esc(meta)}</div></div></div>
       ${desc ? `<p style="font-size:13px;color:var(--ink2);line-height:1.65;margin-top:6px">${esc(desc)}</p>` : ''}
       <div class="colactions">
         <button class="btn" id="colPlayAll">▶ 播放全部</button>
@@ -644,7 +665,25 @@ $('#searchInput').addEventListener('input', e => {
   if (!term) { $('#searchContent').innerHTML = '<div class="empty">输入关键词开始搜索</div>'; return; }
   searchTimer = setTimeout(() => doSearch(term), 450);
 });
+function getSearchHist() { try { return JSON.parse(localStorage.getItem('aoi-search-hist') || '[]'); } catch { return []; } }
+function renderSearchHist() {
+  const box = $('#searchHistory');
+  if (!box) return;
+  const h = getSearchHist();
+  if (!h.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="sh-head"><span>搜索记录</span><button class="sh-clear" id="shClear">清除</button></div><div class="sh-chips">' + h.map(t => `<button class="sh-chip">${esc(t)}</button>`).join('') + '</div>';
+  box.querySelectorAll('.sh-chip').forEach(c => c.addEventListener('click', () => { $('#searchInput').value = c.textContent; doSearch(c.textContent); }));
+  $('#shClear').addEventListener('click', () => { localStorage.removeItem('aoi-search-hist'); renderSearchHist(); });
+}
+function saveSearchHist(term) {
+  const h = getSearchHist().filter(t => t !== term);
+  h.unshift(term);
+  try { localStorage.setItem('aoi-search-hist', JSON.stringify(h.slice(0, 10))); } catch {}
+  renderSearchHist();
+}
+renderSearchHist();
 async function doSearch(term) {
+  saveSearchHist(term);
   $('#searchContent').innerHTML = '<div class="empty">搜索中…</div>';
   try {
     const d = await api(`/v1/catalog/${sf}/search?term=${encodeURIComponent(term)}&types=songs,albums,artists&limit=25`);
@@ -806,6 +845,29 @@ function preloadNextPreview() {
   const url = queue[qIndex + 1]?.attributes?.previews?.[0]?.url;
   if (url && audioNext.src !== url) audioNext.src = url;
 }
+let histApple = false;
+function recordHistory(song) {
+  if (!song?.id) return;
+  const a = song.attributes || {};
+  if (!a.name) return;
+  try {
+    let hist = JSON.parse(localStorage.getItem('aoi-history') || '[]');
+    if (hist[0]?.id === song.id) return;
+    hist = hist.filter(x => x.id !== song.id);
+    hist.unshift({ id: song.id, type: 'songs', attributes: { name: a.name, artistName: a.artistName, albumName: a.albumName, artwork: a.artwork, previews: a.previews } });
+    localStorage.setItem('aoi-history', JSON.stringify(hist.slice(0, 24)));
+    if (!histApple) renderHomeHistory();
+  } catch {}
+}
+function renderHomeHistory(songs) {
+  const box = $('#homeHistory');
+  if (!box) return;
+  let list = songs || null;
+  if (!list) { try { list = JSON.parse(localStorage.getItem('aoi-history') || '[]'); } catch { list = []; } }
+  if (!list?.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<h2 class="sec">最近播放</h2><div class="rows">' + list.slice(0, 10).map((x, i) => rowHTML(x, i)).join('') + '</div>';
+  bindSongRows(box, list);
+}
 function updateMediaSession() {
   if (!('mediaSession' in navigator) || !cur) return;
   const a = cur.attributes || {};
@@ -863,6 +925,7 @@ function updateNP() {
   $('#miniArtist').textContent = a.artistName || '—';
   $('#mini').classList.add('show');
   updateMediaSession();
+  recordHistory(cur);
   if (engine === 'preview') preloadNextPreview();
   $('#npVideo').style.display = 'none'; $('#npArt').style.display = '';
   $('#tMode').textContent = engine === 'musickit' ? '完整版' : '试听 30 秒';
@@ -927,19 +990,28 @@ async function tryMotion(song) {
     const sd = await api(`/v1/catalog/${sf}/songs/${cid}?include=albums`);
     const albumId = sd.data?.[0]?.relationships?.albums?.data?.[0]?.id;
     if (!albumId) return;
-    const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`);
-    const ev = ad.data?.[0]?.attributes?.editorialVideo;
-    const url = findVideoUrl(ev);
+    const url = await fetchMotion(albumId);
     if (url && cur && cur.id === song.id) { vid.src = url; vid.style.display = 'block'; img.style.display = 'none'; vid.play().catch(() => {}); }
   } catch { /* no motion artwork: static cover with slow zoom stays */ }
 }
 function findVideoUrl(o) {
   if (!o || typeof o !== 'object') return null;
   for (const v of Object.values(o)) {
-    if (typeof v === 'string' && /\.(mp4|m4v|mov)(\?|$)/i.test(v)) return v;
+    if (typeof v === 'string' && /\.(mp4|m4v|mov|m3u8)(\?|$)/i.test(v)) return v;
     const r = findVideoUrl(v); if (r) return r;
   }
   return null;
+}
+function pickMotion(ev) {
+  if (!ev) return null;
+  for (const k of ['motionDetailSquare', 'motionSquareVideo1x1', 'motionDetailTall', 'motionTallVideo3x4']) {
+    if (ev[k]?.video) return ev[k].video;
+  }
+  return findVideoUrl(ev);
+}
+async function fetchMotion(albumId) {
+  try { const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`, true); const u = pickMotion(ad.data?.[0]?.attributes?.editorialVideo); if (u) return u; } catch {}
+  try { const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`); return pickMotion(ad.data?.[0]?.attributes?.editorialVideo); } catch { return null; }
 }
 
 /* ---------- lyrics ---------- */
