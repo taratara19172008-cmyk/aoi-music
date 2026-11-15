@@ -1698,7 +1698,7 @@ $('#pillQueue').addEventListener('click', () => npView('queue'));
 function renderQueue() {
   const Q = $('#queueView');
   if (!queue.length) { Q.innerHTML = '<div class="qh">' + t('queue_title') + '</div><div style="color:rgba(255,255,255,.6);font-size:14px;padding:4px 2px">' + t('queue_empty') + '</div>'; return; }
-  Q.innerHTML = '<div class="qh">t('queue_count', queue.length)</div>' + queue.map((it, i) => {
+  Q.innerHTML = '<div class="qh">' + t('queue_count', queue.length) + '</div>' + queue.map((it, i) => {
     const a = it.attributes || {};
     const img = a.artwork ? art(a.artwork.url, 92, 92) : 'assets/icon-512.png';
     return `<div class="qrow ${cur && it.id === cur.id ? 'cur' : ''}" data-qi="${i}"><img src="${img}" alt=""><div class="qt"><div class="qn">${esc(a.name || '—')}</div><div class="qa">${esc(a.artistName || '')}</div></div>${cur && it.id === cur.id ? '<span class="eq">♪♪</span>' : ''}</div>`;
