@@ -716,7 +716,7 @@ async function playStation(st) {
   if (!st) return;
   if (!authorized || !music) { toast('先在「设置」里连接 Apple 账户才能听电台'); return; }
   try {
-    engine = 'musickit'; queue = []; qIndex = -1;
+    engine = 'musickit'; queue = []; qIndex = -1; wantPlay = true;
     await music.setQueue({ station: st.id });
     await music.play();
     toast('正在播放电台：' + (st.attributes?.name || ''));
@@ -765,6 +765,7 @@ async function playSongs(songs, index) {
 async function startCurrent() {
   cur = queue[qIndex];
   if (!cur) return;
+  wantPlay = true; resumeTries = 0;
   stopLyrics();
   if (music && authorized) {
     engine = 'musickit';
@@ -798,33 +799,59 @@ function syncFromMusicKit() {
   }
 }
 function isPlaying() { return engine === 'musickit' ? !!(music && music.isPlaying) : !audio.paused; }
+let wantPlay = false, resumeTries = 0;
+const audioNext = new Audio(); audioNext.preload = 'auto';
+function preloadNextPreview() {
+  if (shuffle || qIndex < 0 || qIndex >= queue.length - 1) return;
+  const url = queue[qIndex + 1]?.attributes?.previews?.[0]?.url;
+  if (url && audioNext.src !== url) audioNext.src = url;
+}
+function updateMediaSession() {
+  if (!('mediaSession' in navigator) || !cur) return;
+  const a = cur.attributes || {};
+  const artwork = a.artwork?.url ? [96, 192, 384, 512].map(sz => ({ src: art(a.artwork.url, sz, sz), sizes: sz + 'x' + sz, type: 'image/jpeg' })) : [];
+  try { navigator.mediaSession.metadata = new MediaMetadata({ title: a.name || '', artist: a.artistName || '', album: a.albumName || '', artwork }); } catch {}
+}
 function curTime() { return engine === 'musickit' ? (music.currentPlaybackTime || 0) : (audio.currentTime || 0); }
 function curDur() { return engine === 'musickit' ? (music.currentPlaybackDuration || 0) : (audio.duration || 30); }
 async function togglePlay() {
   if (!cur) { toast('先选一首歌吧'); return; }
-  if (engine === 'musickit') { music.isPlaying ? await music.pause() : await music.play(); }
-  else { audio.paused ? audio.play().catch(() => {}) : audio.pause(); }
+  if (engine === 'musickit') { if (music.isPlaying) { wantPlay = false; await music.pause(); } else { wantPlay = true; await music.play(); } }
+  else { if (audio.paused) { wantPlay = true; audio.play().catch(() => {}); } else { wantPlay = false; audio.pause(); } }
   syncPlayUI();
 }
 async function next(auto = false) {
+  if (!auto) wantPlay = true;
   if (engine === 'musickit' && !auto) { await music.skipToNextItem(); return; }
   if (!queue.length) return;
   if (engine === 'musickit' && auto) return; // MusicKit advances by itself
   if (shuffle && queue.length > 1) { let n; do { n = Math.floor(Math.random() * queue.length); } while (n === qIndex); qIndex = n; }
   else if (qIndex < queue.length - 1) qIndex++;
-  else if (repeatMode === 1) qIndex = 0; else { audio.pause(); return; }
+  else if (repeatMode === 1) qIndex = 0; else { wantPlay = false; audio.pause(); return; }
   startCurrent();
 }
 async function prev() {
+  wantPlay = true;
   if (engine === 'musickit') { await music.skipToPreviousItem(); return; }
   if (curTime() > 3) { audio.currentTime = 0; return; }
   if (qIndex > 0) { qIndex--; startCurrent(); }
 }
 audio.addEventListener('ended', () => { if (repeatMode === 2) { audio.currentTime = 0; audio.play(); } else next(true); });
 audio.addEventListener('play', syncPlayUI); audio.addEventListener('pause', syncPlayUI);
+if ('mediaSession' in navigator) {
+  const ms = navigator.mediaSession;
+  try {
+    ms.setActionHandler('play', () => togglePlay());
+    ms.setActionHandler('pause', () => togglePlay());
+    ms.setActionHandler('previoustrack', () => prev());
+    ms.setActionHandler('nexttrack', () => next());
+    ms.setActionHandler('seekto', e => { if (e.seekTime != null) { if (engine === 'musickit') music.seekToTime(e.seekTime); else audio.currentTime = e.seekTime; } });
+  } catch {}
+}
 
 function updateNP() {
   if (!cur) return;
+  resumeTries = 0;
   if ($('#queueView').classList.contains('show')) renderQueue();
   const a = cur.attributes || {};
   const img = art(a.artwork?.url, 640, 640);
@@ -835,6 +862,8 @@ function updateNP() {
   $('#miniTitle').textContent = a.name || '—';
   $('#miniArtist').textContent = a.artistName || '—';
   $('#mini').classList.add('show');
+  updateMediaSession();
+  if (engine === 'preview') preloadNextPreview();
   $('#npVideo').style.display = 'none'; $('#npArt').style.display = '';
   $('#tMode').textContent = engine === 'musickit' ? '完整版' : '试听 30 秒';
   syncPlayUI();
@@ -856,6 +885,18 @@ setInterval(() => {
   $('#tCur').textContent = fmtT(t);
   $('#tLeft').textContent = '-' + fmtT(Math.max(0, d - t));
   highlightLyric(t);
+  // 连续播放守护：不是用户手动暂停却停住了（切歌卡顿、后台被系统掐停），自动续上；队列真放完不干预
+  if (wantPlay && cur) {
+    if (isPlaying()) resumeTries = 0;
+    else if (resumeTries < 4) {
+      resumeTries++;
+      if (engine === 'musickit' && music) {
+        const moreLeft = !!(music.queue?.nextPlayableItem) || curTime() < curDur() - 1.5;
+        if (moreLeft) music.play().catch(() => {});
+      } else if (engine === 'preview' && !audio.ended) audio.play().catch(() => {});
+    }
+  }
+  if ('mediaSession' in navigator) { try { navigator.mediaSession.playbackState = isPlaying() ? 'playing' : 'paused'; } catch {} }
 }, 500);
 $('#seek').addEventListener('input', e => {
   const d = curDur(); if (!d) return;
