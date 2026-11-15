@@ -698,6 +698,7 @@ function bindSongRows(root, songs) {
 /* ---------- 收藏与歌单管理 ---------- */
 const favCache = new Map();
 const favChecked = new Set();
+const favOff = new Set();
 function favKey(song) { return (song.type === 'library-songs' ? 'library-songs' : 'songs') + ':' + song.id; }
 function paintFavs() {
   document.querySelectorAll('[data-fav]').forEach(b => b.classList.toggle('on', !!favCache.get(b.dataset.fkind + ':' + b.dataset.fid)));
@@ -707,8 +708,8 @@ async function hydrateFavs(songs) {
   if (!authorized || !songs?.length) return;
   const cat = songs.filter(x => x.type !== 'library-songs').map(x => x.id);
   const lib = songs.filter(x => x.type === 'library-songs').map(x => x.id);
-  try { if (cat.length) (await api('/v1/me/ratings/songs?ids=' + cat.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1) favCache.set('songs:' + r.id, true); }); } catch {}
-  try { if (lib.length) (await api('/v1/me/ratings/library-songs?ids=' + lib.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1) favCache.set('library-songs:' + r.id, true); }); } catch {}
+  try { if (cat.length) (await api('/v1/me/ratings/songs?ids=' + cat.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1 && !favOff.has('songs:' + r.id)) favCache.set('songs:' + r.id, true); }); } catch {}
+  try { if (lib.length) (await api('/v1/me/ratings/library-songs?ids=' + lib.slice(0, 100).join(','))).data?.forEach(r => { if (r.attributes?.value === 1 && !favOff.has('library-songs:' + r.id)) favCache.set('library-songs:' + r.id, true); }); } catch {}
   paintFavs();
 }
 async function rateWrite(kind, id) {
@@ -720,11 +721,23 @@ async function toggleFav(song) {
   if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏');
   const kind = song.type === 'library-songs' ? 'library-songs' : 'songs';
   const key = kind + ':' + song.id;
-  try {
-    if (favCache.get(key)) { await api(`/v1/me/ratings/${kind}/${song.id}`, false, { method: 'DELETE' }); favCache.delete(key); toast('已取消收藏'); }
-    else { await rateWrite(kind, song.id); favCache.set(key, true); toast('已收藏'); }
-  } catch { toast('收藏操作失败，再试一次'); }
+  const wasOn = !!favCache.get(key);
+  if (wasOn) { favCache.delete(key); favOff.add(key); } else { favCache.set(key, true); favOff.delete(key); }
   paintFavs();
+  try {
+    if (wasOn) {
+      await api(`/v1/me/ratings/${kind}/${song.id}`, false, { method: 'DELETE' });
+      try {
+        const chk = await api(`/v1/me/ratings/${kind}/${song.id}`);
+        if (chk?.data?.attributes?.value === 1) await api(`/v1/me/ratings/${kind}/${song.id}`, false, { method: 'DELETE' });
+      } catch {}
+      toast('已取消收藏');
+    } else { await rateWrite(kind, song.id); toast('已收藏'); }
+  } catch {
+    if (wasOn) { favCache.set(key, true); favOff.delete(key); } else { favCache.delete(key); favOff.add(key); }
+    paintFavs();
+    toast('收藏操作失败，再试一次');
+  }
 }
 async function syncNpFav() {
   const btn = $('#npFav');
@@ -736,7 +749,7 @@ async function syncNpFav() {
     try {
       const kind = cur.type === 'library-songs' ? 'library-songs' : 'songs';
       const d = await api(`/v1/me/ratings/${kind}/${cur.id}`);
-      if (d.data?.attributes?.value === 1) { favCache.set(key, true); btn.classList.add('on'); paintFavs(); }
+      if (d.data?.attributes?.value === 1 && !favOff.has(key)) { favCache.set(key, true); btn.classList.add('on'); paintFavs(); }
     } catch {}
   }
 }
@@ -749,11 +762,24 @@ function paintArtistFav(id, btn) {
 }
 async function toggleArtistFav(id, btn) {
   if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏歌手');
-  try {
-    if (favCache.get('artists:' + id)) { await api(`/v1/me/ratings/artists/${id}`, false, { method: 'DELETE' }); favCache.delete('artists:' + id); toast('已取消收藏歌手'); }
-    else { await rateWrite('artists', id); favCache.set('artists:' + id, true); toast('已收藏歌手'); }
-  } catch { toast('收藏歌手失败，再试一次'); }
+  const key = 'artists:' + id;
+  const wasOn = !!favCache.get(key);
+  if (wasOn) { favCache.delete(key); favOff.add(key); } else { favCache.set(key, true); favOff.delete(key); }
   paintArtistFav(id, btn);
+  try {
+    if (wasOn) {
+      await api(`/v1/me/ratings/artists/${id}`, false, { method: 'DELETE' });
+      try {
+        const chk = await api(`/v1/me/ratings/artists/${id}`);
+        if (chk?.data?.attributes?.value === 1) await api(`/v1/me/ratings/artists/${id}`, false, { method: 'DELETE' });
+      } catch {}
+      toast('已取消收藏歌手');
+    } else { await rateWrite('artists', id); toast('已收藏歌手'); }
+  } catch {
+    if (wasOn) { favCache.set(key, true); favOff.delete(key); } else { favCache.delete(key); favOff.add(key); }
+    paintArtistFav(id, btn);
+    toast('收藏歌手失败，再试一次');
+  }
 }
 
 /* ---------- 底部弹层 ---------- */
@@ -918,7 +944,7 @@ async function openArtist(id) {
       afb.addEventListener('click', () => toggleArtistFav(id, afb));
       if (authorized && !favChecked.has('artists:' + id)) {
         favChecked.add('artists:' + id);
-        api('/v1/me/ratings/artists?ids=' + id).then(d => { if (d.data?.[0]?.attributes?.value === 1) { favCache.set('artists:' + id, true); paintArtistFav(id, afb); } }).catch(() => {});
+        api('/v1/me/ratings/artists?ids=' + id).then(d => { if (d.data?.[0]?.attributes?.value === 1 && !favOff.has('artists:' + id)) { favCache.set('artists:' + id, true); paintArtistFav(id, afb); } }).catch(() => {});
       }
     }
     bindCards(box);
