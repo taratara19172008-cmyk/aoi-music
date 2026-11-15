@@ -404,7 +404,15 @@ async function api(path, amp = false) {
   } else {
     r = await fetch(direct, { headers });
   }
-  if (!r.ok) throw new Error('API ' + r.status);
+  if (!r.ok) {
+    const err = new Error('API ' + r.status);
+    try {
+      const j = await r.json();
+      const e0 = j?.errors?.[0];
+      if (e0) { err.appleCode = e0.code || ''; err.appleDetail = e0.detail || e0.title || ''; err.message = 'API ' + r.status + (e0.code ? ' · ' + e0.code : ''); }
+    } catch {}
+    throw err;
+  }
   return r.json();
 }
 /* 让 MusicKit 自己发出的请求也走中转（它直连苹果会被按来源拦截） */
@@ -879,15 +887,26 @@ async function loadLyrics(song) {
   if (!authorized) return;
   try {
     const cid = await resolveCatalogId(song);
-    const d = await api(`/v1/catalog/${sf}/songs/${cid}/lyrics`);
-    const ttml = d.data?.[0]?.attributes?.ttml;
+    const attempts = [
+      () => api(`/v1/catalog/${sf}/songs/${cid}/lyrics`),
+      async () => { const d = await api(`/v1/catalog/${sf}/songs/${cid}?include=lyrics`); return { data: d.data?.[0]?.relationships?.lyrics?.data || [] }; },
+      () => api(`/v1/catalog/${sf}/songs/${cid}/lyrics`, true),
+      () => api(`/v1/catalog/${sf}/songs/${cid}/syllable-lyrics`)
+    ];
+    let d = null, lastErr = null;
+    for (const fn of attempts) {
+      try { const r = await fn(); if (r.data?.[0]?.attributes?.ttml || r.data?.[0]?.attributes?.ttmlLocal) { d = r; break; } lastErr = lastErr || new Error('返回了空歌词'); }
+      catch (e) { lastErr = e; }
+    }
+    if (!d) throw lastErr || new Error('歌词接口无数据');
+    const ttml = d.data?.[0]?.attributes?.ttml || d.data?.[0]?.attributes?.ttmlLocal;
     if (!ttml) { lastLyricNote = '苹果没有返回这首歌的歌词数据'; return; }
     const doc = new DOMParser().parseFromString(ttml, 'text/xml');
     const ps = [...doc.querySelectorAll('*')].filter(el => el.localName === 'p');
     lyricLines = ps.map(p => ({ t: parseTTMLTime(p.getAttribute('begin')), text: p.textContent.trim() })).filter(l => l.text);
     if (!lyricLines.length) lastLyricNote = '歌词解析为空（TTML 无文本行）';
     $('#lyrics').innerHTML = lyricLines.map((l, i) => `<div class="ln" data-i="${i}">${esc(l.text)}</div>`).join('');
-  } catch (e) { lastLyricNote = '歌词接口出错：' + (e.message || e); }
+  } catch (e) { lastLyricNote = '歌词接口出错：' + (e.message || e) + (e.appleDetail ? '（' + e.appleDetail + '）' : ''); }
 }
 function parseTTMLTime(s) {
   if (!s) return 0;
