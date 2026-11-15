@@ -1417,6 +1417,7 @@ async function startCurrent() {
       await music.setQueue({ songs: queue.map(s => s.id), startIndex: qIndex });
       music.shuffleMode = shuffle ? 1 : 0;
       music.repeatMode = repeatMode;
+      if (qIndex > 0) { try { await music.changeToMediaAtIndex(qIndex); } catch (e) { console.warn('jump failed', e); } }
       await music.play();
     } catch (e) { console.error(e); toast(t('play_fail_region')); }
   } else {
@@ -1576,7 +1577,7 @@ $('#seek').addEventListener('input', e => {
   const t = d * (e.target.value / 100);
   if (engine === 'musickit') music.seekToTime(t); else audio.currentTime = t;
 });
-$('#vol').addEventListener('input', e => { const v = e.target.value / 100; audio.volume = v; if (music) music.volume = v; });
+$('#vol').addEventListener('input', e => { const v = e.target.value / 100; const VC = window.Capacitor?.Plugins?.VolumeControl; if (VC) { VC.setVolume({ value: v }).catch(() => {}); return; } audio.volume = v; if (music) music.volume = v; });
 $('#npArtist').addEventListener('click', () => { if (cur) gotoArtistOf(cur); });
 $('#npTitle').addEventListener('click', () => { if (cur) gotoAlbumOf(cur); });
 $('#btnPlay').addEventListener('click', togglePlay);
@@ -1589,7 +1590,7 @@ $('#btnShuffle').addEventListener('click', e => { shuffle = !shuffle; e.currentT
 $('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) % 3; e.currentTarget.classList.toggle('on', repeatMode > 0); if (music && engine === 'musickit') music.repeatMode = repeatMode; toast([t('repeat_off'), t('repeat_all'), t('repeat_one')][repeatMode]); });
 $('#mini').addEventListener('click', openNP);
 $('#np .grab').addEventListener('click', () => $('#np').classList.remove('open'));
-function openNP() { if (cur) $('#np').classList.add('open'); }
+function openNP() { if (cur) { $('#np').classList.add('open'); const VC = window.Capacitor?.Plugins?.VolumeControl; if (VC) VC.getVolume().then(r => { if (r && typeof r.value === 'number') $('#vol').value = Math.round(r.value * 100); }).catch(() => {}); } }
 $('#pillAir').addEventListener('click', () => toast(t('airplay_hint')));
 
 /* ---------- animated (motion) artwork ---------- */
