@@ -125,6 +125,8 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
 .panel{background:linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.22) 50%, rgba(255,255,255,.36));-webkit-backdrop-filter:blur(16px) saturate(190%);backdrop-filter:blur(16px) saturate(190%);
   border:1px solid var(--glass-brd);border-radius:22px;box-shadow:var(--shadow);padding:20px;margin-top:16px;max-width:640px}
 .panel h3{font-size:16.5px;margin-bottom:6px}
+.picon{width:24px;height:24px;border-radius:7px;vertical-align:-6px;margin-right:8px;box-shadow:0 3px 8px rgba(20,10,50,.18)}
+#rail .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .panel p{font-size:13.5px;color:var(--ink2);line-height:1.65}
 .swatches{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:center}
 .sw{width:42px;height:42px;border-radius:50%;cursor:pointer;border:3px solid rgba(255,255,255,.9);box-shadow:0 6px 14px rgba(0,0,0,.2);transition:.15s}
@@ -237,7 +239,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   <button class="navbtn" data-page="library"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2.2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2.2"/></svg>资料库</button>
   <div class="sp"></div>
   <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke-linecap="round"/></svg>设置</button>
-  <div class="avatar" title="あおい">🩵</div>
+  <div class="avatar" title="あおい"><img src="assets/icons/avatar.png" alt=""></div>
 </nav>
 
 <div id="main">
@@ -251,8 +253,8 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
     <h1 class="greet">搜索</h1>
     <p class="sub">歌曲、专辑、艺人，全曲库搜索</p>
     <div style="height:16px"></div>
-    <div class="searchbar"><span>🔍</span><input id="searchInput" type="search" placeholder="搜索歌曲 / 专辑 / 艺人…" enterkeyhint="search"></div>
-    <div id="searchContent"><div class="empty">输入关键词开始搜索 🎧</div></div>
+    <div class="searchbar"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#8e8e93" stroke-width="2.4" style="flex:0 0 auto"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21" stroke-linecap="round"/></svg><input id="searchInput" type="search" placeholder="搜索歌曲 / 专辑 / 艺人…" enterkeyhint="search"></div>
+    <div id="searchContent"><div class="empty">输入关键词开始搜索</div></div>
   </section>
 
   <section class="page" id="page-library">
@@ -264,19 +266,19 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   <section class="page" id="page-settings">
     <h1 class="greet">设置</h1>
     <div class="panel">
-      <h3>🎨 主题色</h3>
+      <h3><img class="picon" src="assets/icons/palette.png" alt="">主题色</h3>
       <p>整个 App 的主色调，选好立即生效，会自动记住。</p>
       <div class="swatches" id="swatches"></div>
     </div>
     <div class="panel">
-      <h3>🍎 Apple 账户</h3>
+      <h3><img class="picon" src="assets/icons/apple.png" alt="">Apple 账户</h3>
       <p id="acctDesc">连接你的 Apple 账户后可以播放完整歌曲、查看你的资料库和歌单。登录在苹果官方弹窗里完成，本页接触不到你的密码。</p>
       <div style="height:12px"></div>
       <button class="btn" id="acctBtn">连接 Apple 账户</button>
       <button class="btn ghost" id="signOutBtn" style="display:none">断开连接</button>
     </div>
     <div class="panel">
-      <h3>ℹ️ 关于</h3>
+      <h3><img class="picon" src="assets/icons/info.png" alt="">关于</h3>
       <p>あおいミュージック AoiMusic · 第三方 Apple Music 网页客户端<br>未连接账户时播放的是 30 秒试听；连接有订阅的账户后播放完整歌曲。<br>曲库区域：<span id="sfLabel">cn</span></p>
     </div>
   </section>
@@ -313,10 +315,10 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
       <button class="cbtn" id="btnNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM5 5v14l9.5-7z"/></svg></button>
       <div class="side-ctl"><button class="cbtn" id="btnRepeat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h9.6l-2-2L16 3.6 19.6 7 16 10.4 14.6 9l2-2H7a1 1 0 0 0-1 1v3H4V8a3 3 0 0 1 3-3zm10 10H7.4l2 2L8 20.4 4.4 17 8 13.6 9.4 15l-2 2H17a1 1 0 0 0 1-1v-3h2v3a3 3 0 0 1-3 3z"/></svg></button></div>
     </div>
-    <div class="vol"><span>🔈</span><input type="range" id="vol" min="0" max="100" value="80"><span>🔊</span></div>
+    <div class="vol"><span><svg viewBox="0 0 24 24" width="17" height="17" fill="rgba(255,255,255,.75)"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></span><input type="range" id="vol" min="0" max="100" value="80"><span><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><path d="M3 9v6h4l6 5V4L7 9H3z" fill="rgba(255,255,255,.85)" stroke="none"/><path d="M16 9a4.5 4.5 0 0 1 0 6M18.4 6.6a8 8 0 0 1 0 10.8" stroke-linecap="round"/></svg></span></div>
     <div class="pills">
       <button class="pill" id="pillLyrics">♪ 歌词</button>
-      <button class="pill" id="pillAir">📡 AirPlay</button>
+      <button class="pill" id="pillAir"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="M12 13.5l3.2 4.5H8.8z" fill="currentColor" stroke="none"/></svg> AirPlay</button>
       <button class="pill" id="pillQueue">☰ 队列</button>
     </div>
   </div>
@@ -392,7 +394,7 @@ setTimeout(() => { if (!music) loadHome(); }, 3500); // fallback: catalog works 
 function syncAccountUI() {
   $('#acctBtn').style.display = authorized ? 'none' : '';
   $('#signOutBtn').style.display = authorized ? '' : 'none';
-  if (authorized) $('#acctDesc').textContent = '已连接 Apple 账户 ✅ 现在可以播放完整歌曲、查看资料库。';
+  if (authorized) $('#acctDesc').textContent = '已连接 Apple 账户，现在可以播放完整歌曲、查看资料库。';
 }
 $('#acctBtn').addEventListener('click', async () => {
   if (!music) { toast('MusicKit 还没加载好，稍等几秒再试'); return; }
@@ -400,7 +402,7 @@ $('#acctBtn').addEventListener('click', async () => {
     await music.authorize();
     authorized = true;
     if (music.storefrontId) { sf = music.storefrontId; $('#sfLabel').textContent = sf; }
-    syncAccountUI(); toast('已连接 🎉 现在点歌就是完整版了'); loadHome(); loadLibrary();
+    syncAccountUI(); toast('已连接，现在点歌就是完整版了'); loadHome(); loadLibrary();
   } catch (e) { toast('连接取消或失败'); }
 });
 $('#signOutBtn').addEventListener('click', async () => { try { await music.unauthorize(); } catch {} authorized = false; engine = 'preview'; syncAccountUI(); toast('已断开'); });
@@ -428,7 +430,7 @@ async function loadHome() {
 }
 function cardHTML(item, kind) {
   const a = item.attributes || {};
-  const img = a.artwork ? `<img loading="lazy" src="${art(a.artwork.url, 320, 320)}" alt="">` : '<div class="ph">🎵</div>';
+  const img = a.artwork ? `<img loading="lazy" src="${art(a.artwork.url, 320, 320)}" alt="">` : '<img src="assets/icon-512.png" alt="">';
   return `<div class="card" data-kind="${kind}" data-id="${item.id}">${img}<div class="t">${esc(a.name || '')}</div><div class="a">${esc(a.artistName || a.curatorName || '')}</div></div>`;
 }
 function rowHTML(s, i) {
@@ -458,7 +460,7 @@ let searchTimer = null;
 $('#searchInput').addEventListener('input', e => {
   clearTimeout(searchTimer);
   const term = e.target.value.trim();
-  if (!term) { $('#searchContent').innerHTML = '<div class="empty">输入关键词开始搜索 🎧</div>'; return; }
+  if (!term) { $('#searchContent').innerHTML = '<div class="empty">输入关键词开始搜索</div>'; return; }
   searchTimer = setTimeout(() => doSearch(term), 450);
 });
 async function doSearch(term) {
@@ -469,7 +471,7 @@ async function doSearch(term) {
     let html = '';
     if (songs.length) html += '<h2 class="sec">歌曲</h2><div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
-    $('#searchContent').innerHTML = html || '<div class="empty">没找到相关内容 (´･ω･`)</div>';
+    $('#searchContent').innerHTML = html || '<div class="empty">没找到相关内容</div>';
     bindSongRows($('#searchContent'), songs);
     bindCards($('#searchContent'));
   } catch { $('#searchContent').innerHTML = '<div class="empty">搜索失败，检查网络后重试</div>'; }
@@ -478,7 +480,7 @@ async function doSearch(term) {
 /* ---------- library ---------- */
 let libLoaded = false;
 async function loadLibrary() {
-  if (!authorized) { $('#libContent').innerHTML = '<div class="empty">还没连接 Apple 账户。<br>去「设置」里连接后，这里会出现你的歌单和资料库 🎵</div>'; return; }
+  if (!authorized) { $('#libContent').innerHTML = '<div class="empty">还没连接 Apple 账户。<br>去「设置」里连接后，这里会出现你的歌单和资料库</div>'; return; }
   if (libLoaded) return; libLoaded = true;
   $('#libContent').innerHTML = '<div class="empty">加载资料库中…</div>';
   try {
@@ -612,7 +614,7 @@ $('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) %
 $('#mini').addEventListener('click', openNP);
 $('#np .grab').addEventListener('click', () => $('#np').classList.remove('open'));
 function openNP() { if (cur) $('#np').classList.add('open'); }
-$('#pillAir').addEventListener('click', () => toast('AirPlay 请用 iOS 控制中心选择设备 📡'));
+$('#pillAir').addEventListener('click', () => toast('AirPlay 请用 iOS 控制中心选择设备'));
 $('#pillQueue').addEventListener('click', () => { $('#np').classList.remove('open'); toast('队列就是当前列表，点任意歌曲切换'); });
 
 /* ---------- animated (motion) artwork ---------- */
