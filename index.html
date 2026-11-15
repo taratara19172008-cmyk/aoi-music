@@ -290,6 +290,45 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   background:rgba(20,20,25,.88);color:#fff;font-size:14px;padding:11px 20px;border-radius:999px;max-width:86vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%)}
 @media (max-width:560px){#main{margin-left:92px;padding:20px 14px 130px}#mini{left:92px}}
+
+/* ===== 晶莹剔透：物理光线强化（高光 / 折射 / 色彩渗光 / 玻璃透镜） ===== */
+:root{
+  --glass:linear-gradient(118deg, rgba(255,255,255,.30), rgba(255,255,255,.07) 42%, rgba(255,255,255,.03) 58%, rgba(255,255,255,.20));
+  --glass-brd:rgba(255,255,255,.72);
+  --rim:
+    inset 0 0 0 1px rgba(255,255,255,.55),
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 2px 3px rgba(255,255,255,.5),
+    inset 0 -1px 0 rgba(255,255,255,.45),
+    inset 0 -12px 18px -12px rgba(255,255,255,.4),
+    inset 2px 0 4px rgba(255,255,255,.6),
+    inset -2px 0 5px rgba(255,255,255,.22),
+    inset 4px 0 16px -4px color-mix(in srgb, var(--accent) 48%, transparent),
+    inset -4px 0 16px -4px color-mix(in srgb, var(--accent) 24%, transparent),
+    inset 0 -16px 22px -16px color-mix(in srgb, var(--accent) 42%, transparent),
+    inset 0 14px 20px -14px rgba(255,255,255,.65);
+  --shadow:0 18px 44px rgba(30,10,40,.11), 0 6px 26px color-mix(in srgb, var(--accent) 17%, transparent), var(--rim);
+  --glassbtn:linear-gradient(145deg, rgba(255,255,255,.5), rgba(255,255,255,.12) 52%, rgba(255,255,255,.3));
+  --glassbtn-shadow:0 8px 22px rgba(25,10,45,.12), var(--rim);
+}
+#bgfx i{opacity:.52}
+#rail{border-radius:34px}
+#rail::before{-webkit-backdrop-filter:blur(5px) saturate(200%);backdrop-filter:blur(5px) saturate(200%);background-size:170% 170%;animation:glassheen 9s ease-in-out infinite alternate}
+#mini{border-radius:28px}
+#mini::before{-webkit-backdrop-filter:blur(5px) saturate(200%);backdrop-filter:blur(5px) saturate(200%);background-size:170% 170%;animation:glassheen 11s ease-in-out infinite alternate-reverse}
+@keyframes glassheen{from{background-position:0% 0%}to{background-position:100% 100%}}
+#rail::after{content:"";position:absolute;inset:5% -16px 5% -20px;z-index:-1;border-radius:44px;filter:blur(18px);opacity:.55;pointer-events:none;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, transparent), color-mix(in srgb, var(--accent) 22%, transparent) 70%, transparent)}
+#mini::after{content:"";position:absolute;left:3%;right:3%;bottom:-13px;height:55%;z-index:-1;border-radius:40px;filter:blur(16px);opacity:.4;pointer-events:none;
+  background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 45%, transparent), transparent)}
+#rail .logo{background:linear-gradient(145deg, rgba(255,255,255,.55), rgba(255,255,255,.14) 55%, rgba(255,255,255,.32));border:1px solid rgba(255,255,255,.7)}
+#rail .navbtn.on{background:linear-gradient(145deg, rgba(255,255,255,.55), rgba(255,255,255,.13) 55%, rgba(255,255,255,.32));border:1px solid rgba(255,255,255,.72);
+  box-shadow:var(--glassbtn-shadow), 0 8px 22px color-mix(in srgb, var(--accent) 20%, transparent)}
+.panel{background:var(--glass);-webkit-backdrop-filter:blur(10px) saturate(185%);backdrop-filter:blur(10px) saturate(185%)}
+#miniPlay,#npFav{background:radial-gradient(circle at 32% 27%, rgba(255,255,255,.9), rgba(255,255,255,.28) 46%, rgba(255,255,255,.08) 72%, color-mix(in srgb, var(--accent) 20%, rgba(255,255,255,.10)));
+  border:1px solid rgba(255,255,255,.82);
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.95), inset 0 -3px 6px rgba(255,255,255,.3), inset 0 -10px 16px -8px color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 22px rgba(25,10,45,.15)}
+.cbtn.big{background:radial-gradient(circle at 32% 27%, rgba(255,255,255,.55), rgba(255,255,255,.16) 48%, rgba(255,255,255,.05) 74%, color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,.08))) !important}
 </style>
 </head>
 <body>
