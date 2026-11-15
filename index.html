@@ -572,7 +572,7 @@ async function tryMotion(song) {
     const sd = await api(`/v1/catalog/${sf}/songs/${song.id}?include=albums`);
     const albumId = sd.data?.[0]?.relationships?.albums?.data?.[0]?.id;
     if (!albumId) return;
-    const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`, true);
+    const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`);
     const ev = ad.data?.[0]?.attributes?.editorialVideo;
     const url = findVideoUrl(ev);
     if (url && cur && cur.id === song.id) { vid.src = url; vid.style.display = 'block'; img.style.display = 'none'; vid.play().catch(() => {}); }
@@ -594,7 +594,7 @@ async function loadLyrics(song) {
   stopLyrics();
   if (!authorized) return;
   try {
-    const d = await api(`/v1/catalog/${sf}/songs/${song.id}/lyrics`, true);
+    const d = await api(`/v1/catalog/${sf}/songs/${song.id}/lyrics`);
     const ttml = d.data?.[0]?.attributes?.ttml;
     if (!ttml) return;
     const doc = new DOMParser().parseFromString(ttml, 'text/xml');
