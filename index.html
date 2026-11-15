@@ -787,7 +787,7 @@ async function playStation(st) {
   if (!st) return;
   if (!authorized || !music) { toast('先在「设置」里连接 Apple 账户才能听电台'); return; }
   try {
-    engine = 'musickit'; queue = []; qIndex = -1; wantPlay = true;
+    engine = 'musickit'; queue = []; qIndex = -1; wantPlay = true; lastPlayOp = Date.now();
     await music.setQueue({ station: st.id });
     await music.play();
     toast('正在播放电台：' + (st.attributes?.name || ''));
@@ -836,7 +836,7 @@ async function playSongs(songs, index) {
 async function startCurrent() {
   cur = queue[qIndex];
   if (!cur) return;
-  wantPlay = true; resumeTries = 0;
+  wantPlay = true; resumeTries = 0; stillTicks = 0; lastPlayOp = Date.now();
   stopLyrics();
   if (music && authorized) {
     engine = 'musickit';
@@ -870,7 +870,7 @@ function syncFromMusicKit() {
   }
 }
 function isPlaying() { return engine === 'musickit' ? !!(music && music.isPlaying) : !audio.paused; }
-let wantPlay = false, resumeTries = 0;
+let wantPlay = false, resumeTries = 0, stillTicks = 0, lastPlayOp = 0;
 const audioNext = new Audio(); audioNext.preload = 'auto';
 function preloadNextPreview() {
   if (shuffle || qIndex < 0 || qIndex >= queue.length - 1) return;
@@ -910,12 +910,13 @@ function curTime() { return engine === 'musickit' ? (music.currentPlaybackTime |
 function curDur() { return engine === 'musickit' ? (music.currentPlaybackDuration || 0) : (audio.duration || 30); }
 async function togglePlay() {
   if (!cur) { toast('先选一首歌吧'); return; }
-  if (engine === 'musickit') { if (music.isPlaying) { wantPlay = false; await music.pause(); } else { wantPlay = true; await music.play(); } }
+  lastPlayOp = Date.now();
+  if (engine === 'musickit') { try { if (music.isPlaying) { wantPlay = false; await music.pause(); } else { wantPlay = true; await music.play(); } } catch {} }
   else { if (audio.paused) { wantPlay = true; audio.play().catch(() => {}); } else { wantPlay = false; audio.pause(); } }
   syncPlayUI();
 }
 async function next(auto = false) {
-  if (!auto) wantPlay = true;
+  if (!auto) { wantPlay = true; lastPlayOp = Date.now(); }
   if (engine === 'musickit' && !auto) { await music.skipToNextItem(); return; }
   if (!queue.length) return;
   if (engine === 'musickit' && auto) return; // MusicKit advances by itself
@@ -925,7 +926,7 @@ async function next(auto = false) {
   startCurrent();
 }
 async function prev() {
-  wantPlay = true;
+  wantPlay = true; lastPlayOp = Date.now();
   if (engine === 'musickit') { await music.skipToPreviousItem(); return; }
   if (curTime() > 3) { audio.currentTime = 0; return; }
   if (qIndex > 0) { qIndex--; startCurrent(); }
@@ -945,7 +946,7 @@ if ('mediaSession' in navigator) {
 
 function updateNP() {
   if (!cur) return;
-  resumeTries = 0;
+  resumeTries = 0; stillTicks = 0;
   if ($('#queueView').classList.contains('show')) renderQueue();
   const a = cur.attributes || {};
   const img = art(a.artwork?.url, 640, 640);
@@ -980,15 +981,18 @@ setInterval(() => {
   $('#tCur').textContent = fmtT(t);
   $('#tLeft').textContent = '-' + fmtT(Math.max(0, d - t));
   highlightLyric(t);
-  // 连续播放守护：不是用户手动暂停却停住了（切歌卡顿、后台被系统掐停），自动续上；队列真放完不干预
+  // 连续播放守护：真停住超过 2.5 秒、且离上次播放操作超过 3 秒才轻手续一次，避免和播放器自身的切歌/加载抢指令（抢了会弹 The operation was aborted）
   if (wantPlay && cur) {
-    if (isPlaying()) resumeTries = 0;
-    else if (resumeTries < 4) {
-      resumeTries++;
-      if (engine === 'musickit' && music) {
-        const moreLeft = !!(music.queue?.nextPlayableItem) || curTime() < curDur() - 1.5;
-        if (moreLeft) music.play().catch(() => {});
-      } else if (engine === 'preview' && !audio.ended) audio.play().catch(() => {});
+    if (isPlaying()) { resumeTries = 0; stillTicks = 0; }
+    else {
+      stillTicks++;
+      if (stillTicks >= 5 && resumeTries < 2 && Date.now() - lastPlayOp > 3000) {
+        resumeTries++; lastPlayOp = Date.now(); stillTicks = 0;
+        if (engine === 'musickit' && music) {
+          const moreLeft = !!(music.queue?.nextPlayableItem) || curTime() < curDur() - 1.5;
+          if (moreLeft) music.play().catch(() => {});
+        } else if (engine === 'preview' && !audio.ended) audio.play().catch(() => {});
+      }
     }
   }
   if ('mediaSession' in navigator) { try { navigator.mediaSession.playbackState = isPlaying() ? 'playing' : 'paused'; } catch {} }
