@@ -359,6 +359,14 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 .sheetrow:active{background:color-mix(in srgb, var(--accent) 10%, transparent)}
 .alink:active{opacity:.55}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01s !important;transition-duration:.01s !important}}
+
+/* ===== 播放页标题行：左对齐标题 + 右侧小圆角方形收藏键 ===== */
+.nphead{display:flex;align-items:center;gap:12px;margin-top:22px}
+.nphead-t{flex:1;min-width:0}
+#npTitle{margin-top:0;text-align:left}
+#npArtist{text-align:left}
+#npFav{width:38px;height:38px;border-radius:12px;margin:0;flex:none}
+#npFav svg{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -451,9 +459,12 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
     <div id="npBody">
       <div id="npMain">
         <div id="npArtWrap"><img id="npArt" alt=""><video id="npVideo" autoplay loop muted playsinline></video></div>
+        <div class="nphead"><div class="nphead-t">
         <div id="npTitle">—</div>
         <div id="npArtist">—</div>
+        </div>
         <button id="npFav" aria-label="收藏歌曲"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20.6C6.6 17.1 3.2 13.8 3.2 10.1 3.2 7.4 5.2 5.3 7.7 5.3c1.7 0 3.3.9 4.3 2.4 1-1.5 2.6-2.4 4.3-2.4 2.5 0 4.5 2.1 4.5 4.8 0 3.7-3.4 7-8.8 10.5Z"/></svg></button>
+        </div>
       </div>
       <div id="lyrics"></div>
       <div id="queueView"></div>
