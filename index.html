@@ -206,6 +206,9 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09) translate(-1.2%,1.2%)}}
 #npTitle{margin-top:22px;font-size:23px;font-weight:800;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #npArtist{margin-top:3px;font-size:19px;text-align:center;color:color-mix(in srgb, var(--accent) 65%, #fff);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alink{cursor:pointer}
+.alink:active{opacity:.55}
+#npTitle{cursor:pointer}
 .scrub{margin-top:20px}
 .scrub input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:rgba(255,255,255,.35);outline:none}
 .scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
@@ -498,14 +501,39 @@ function cardHTML(item, kind) {
 }
 function rowHTML(s, i) {
   const a = s.attributes || {};
-  return `<div class="row" data-id="${s.id}"><span class="rk">${i + 1}</span><img loading="lazy" src="${art(a.artwork?.url, 92, 92)}" alt=""><div class="tt"><div class="n">${esc(a.name)}</div><div class="a">${esc(a.artistName)} · ${esc(a.albumName || '')}</div></div><span class="eq">♪♪</span></div>`;
+  return `<div class="row" data-id="${s.id}"><span class="rk">${i + 1}</span><img loading="lazy" src="${art(a.artwork?.url, 92, 92)}" alt=""><div class="tt"><div class="n">${esc(a.name)}</div><div class="a"><span class="alink" data-nav="artist">${esc(a.artistName)}</span>${a.albumName ? ` · <span class="alink" data-nav="album">${esc(a.albumName)}</span>` : ''}</div></div><span class="eq">♪♪</span></div>`;
 }
 function bindSongRows(root, songs) {
   root.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => {
     const idx = songs.findIndex(s => s.id === r.dataset.id);
     if (idx >= 0) playSongs(songs, idx);
   }));
+  root.querySelectorAll('.alink').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation();
+    const row = el.closest('.row');
+    const song = songs.find(x => x.id === row?.dataset.id);
+    if (!song) return;
+    if (el.dataset.nav === 'artist') gotoArtistOf(song); else gotoAlbumOf(song);
+  }));
 }
+
+/* ---------- name navigation (song -> artist page / album page) ---------- */
+const relCache = {};
+async function songRels(song) {
+  const rawId = song?.id || song?.songId;
+  if (!rawId) return null;
+  if (relCache[rawId]) return relCache[rawId];
+  try {
+    const cid = await resolveCatalogId({ id: rawId });
+    const d = await api(`/v1/catalog/${sf}/songs/${cid}?include=artists,albums`);
+    const rel = d.data?.[0]?.relationships || {};
+    const out = { artistId: rel.artists?.data?.[0]?.id || null, albumId: rel.albums?.data?.[0]?.id || null };
+    relCache[rawId] = out;
+    return out;
+  } catch { return null; }
+}
+function gotoArtistOf(song) { songRels(song).then(r => { if (r?.artistId) { $('#np').classList.remove('open'); openArtist(r.artistId); } else toast('这位歌手的主页暂时打不开'); }); }
+function gotoAlbumOf(song) { songRels(song).then(r => { if (r?.albumId) { $('#np').classList.remove('open'); openCollection('album', r.albumId); } else toast('这张专辑暂时打不开'); }); }
 function bindCards(root) {
   root.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection(c.dataset.kind, c.dataset.id)));
 }
@@ -575,7 +603,7 @@ async function openCollection(kind, id) {
       head = meta?.data?.[0] || null;
       tracks = (td.data || []).filter(t => t.type === 'library-songs' || t.type === 'songs');
     } else {
-      const d = await api(`/v1/catalog/${sf}/${kind === 'album' ? 'albums' : 'playlists'}/${id}?include=tracks`);
+      const d = await api(`/v1/catalog/${sf}/${kind === 'album' ? 'albums' : 'playlists'}/${id}?include=tracks${kind === 'album' ? ',artists' : ''}`);
       head = d.data?.[0] || null;
       const rel = head?.relationships?.tracks?.data || head?.relationships?.songs?.data || [];
       tracks = rel.filter(t => t.type === 'songs');
@@ -584,10 +612,12 @@ async function openCollection(kind, id) {
     const a = head?.attributes || {};
     const img = a.artwork ? art(a.artwork.url, 400, 400) : 'assets/icon-512.png';
     const sub = a.artistName || a.curatorName || '';
+    const headArtistId = kind === 'album' ? (head?.relationships?.artists?.data?.[0]?.id || null) : null;
+    const subHTML = headArtistId ? `<span class="alink" id="colArtistLink">${esc(sub)}</span>` : esc(sub);
     const meta = [a.releaseDate ? a.releaseDate.slice(0, 4) : '', a.genreNames?.[0] || '', tracks.length ? tracks.length + ' 首歌曲' : ''].filter(Boolean).join(' · ');
     const desc = a.description?.standard || a.description?.short || a.editorialNotes?.standard || '';
     box.innerHTML = `
-      <div class="colhero"><img src="${img}" alt=""><div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${esc(sub)}</div><div class="cm">${esc(meta)}</div></div></div>
+      <div class="colhero"><img src="${img}" alt=""><div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${subHTML}</div><div class="cm">${esc(meta)}</div></div></div>
       ${desc ? `<p style="font-size:13px;color:var(--ink2);line-height:1.65;margin-top:6px">${esc(desc)}</p>` : ''}
       <div class="colactions">
         <button class="btn" id="colPlayAll">▶ 播放全部</button>
@@ -595,6 +625,8 @@ async function openCollection(kind, id) {
       </div>
       <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">这个歌单暂时没有歌曲</div>'}</div>`;
     bindSongRows(box, tracks);
+    const cal = $('#colArtistLink');
+    if (cal) cal.addEventListener('click', () => openArtist(headArtistId));
     $('#colPlayAll').addEventListener('click', () => { if (colTracks.length) playSongs(colTracks, 0); });
     $('#colShuffle').addEventListener('click', () => {
       if (!colTracks.length) return;
@@ -831,6 +863,8 @@ $('#seek').addEventListener('input', e => {
   if (engine === 'musickit') music.seekToTime(t); else audio.currentTime = t;
 });
 $('#vol').addEventListener('input', e => { const v = e.target.value / 100; audio.volume = v; if (music) music.volume = v; });
+$('#npArtist').addEventListener('click', () => { if (cur) gotoArtistOf(cur); });
+$('#npTitle').addEventListener('click', () => { if (cur) gotoAlbumOf(cur); });
 $('#btnPlay').addEventListener('click', togglePlay);
 $('#miniPlay').addEventListener('click', e => { e.stopPropagation(); togglePlay(); });
 $('#btnNext').addEventListener('click', () => next());
