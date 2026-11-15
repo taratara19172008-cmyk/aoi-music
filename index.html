@@ -406,6 +406,10 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 
 /* ===== 卡片网格固定两列 ===== */
 .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+
+/* ===== 侧栏改短：高度贴合内容 ===== */
+#rail{bottom:auto;padding-bottom:14px}
+#rail .navbtn{padding:9px 0 7px}
 </style>
 </head>
 <body>
@@ -555,7 +559,8 @@ async function api(path, amp = false, opts = {}) {
   const init = { headers, method: opts.method || 'GET' };
   if (opts.body) { headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.body); }
   if (music && music.musicUserToken) headers['Music-User-Token'] = music.musicUserToken;
-  const direct = (amp ? 'https://amp-api.music.apple.com' : 'https://api.music.apple.com') + path;
+  const useAmp = amp || opts.method === 'DELETE' || opts.method === 'PATCH';
+  const direct = (useAmp ? 'https://amp-api.music.apple.com' : 'https://api.music.apple.com') + path;
   const via = base => base + '?target=' + encodeURIComponent(direct);
   let r;
   if (RELAY) {
