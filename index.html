@@ -252,6 +252,9 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
   background:linear-gradient(135deg, rgba(255,255,255,.34), rgba(255,255,255,.09) 48%, rgba(255,255,255,.04) 58%, rgba(255,255,255,.22));
   -webkit-backdrop-filter:blur(9px) saturate(200%);backdrop-filter:blur(9px) saturate(200%);
   border:1px solid rgba(255,255,255,.55);box-shadow:0 12px 26px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.4), inset 0 1.5px 1px rgba(255,255,255,.95), inset 0 -1.5px 1px rgba(255,255,255,.3), inset 2px 0 5px rgba(255,255,255,.35), inset -2px 0 5px rgba(255,255,255,.2);transition:.15s}
+#btnRepeat{position:relative}
+#btnRepeat .rep1{position:absolute;top:3px;right:6px;font-size:10px;font-weight:800;line-height:1;display:none}
+#btnRepeat.one .rep1{display:block}
 .cbtn:hover{transform:scale(1.06)}
 .cbtn:active{transform:scale(.93)}
 .cbtn svg{width:25px;height:25px}
@@ -547,7 +550,7 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
       <button class="cbtn" id="btnPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.5v14H6zM19 5v14L9.5 12z"/></svg></button>
       <button class="cbtn big" id="btnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
       <button class="cbtn" id="btnNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 5H18v14h-2.5zM5 5v14l9.5-7z"/></svg></button>
-      <div class="side-ctl"><button class="cbtn" id="btnRepeat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h9.6l-2-2L16 3.6 19.6 7 16 10.4 14.6 9l2-2H7a1 1 0 0 0-1 1v3H4V8a3 3 0 0 1 3-3zm10 10H7.4l2 2L8 20.4 4.4 17 8 13.6 9.4 15l-2 2H17a1 1 0 0 0 1-1v-3h2v3a3 3 0 0 1-3 3z"/></svg></button></div>
+      <div class="side-ctl"><button class="cbtn" id="btnRepeat"><span class="rep1">1</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h9.6l-2-2L16 3.6 19.6 7 16 10.4 14.6 9l2-2H7a1 1 0 0 0-1 1v3H4V8a3 3 0 0 1 3-3zm10 10H7.4l2 2L8 20.4 4.4 17 8 13.6 9.4 15l-2 2H17a1 1 0 0 0 1-1v-3h2v3a3 3 0 0 1-3 3z"/></svg></button></div>
     </div>
     <div class="vol"><span><svg viewBox="0 0 24 24" width="17" height="17" fill="rgba(255,255,255,.75)"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></span><input type="range" id="vol" min="0" max="100" value="80"><span><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><path d="M3 9v6h4l6 5V4L7 9H3z" fill="rgba(255,255,255,.85)" stroke="none"/><path d="M16 9a4.5 4.5 0 0 1 0 6M18.4 6.6a8 8 0 0 1 0 10.8" stroke-linecap="round"/></svg></span></div>
     <div class="pills">
@@ -570,7 +573,8 @@ const $ = s => document.querySelector(s);
 const DEV = (window.AOI_CONFIG || {}).developerToken || '';
 let music = null, sf = 'cn', authorized = false;
 let queue = [], qIndex = -1, cur = null, engine = 'preview';
-let shuffle = false, repeatMode = 0; // 0 off, 1 all, 2 one
+let shuffle = false, repeatMode = 0; // app: 0 off, 1 all, 2 one
+const mkRepeat = () => repeatMode === 1 ? 2 : repeatMode === 2 ? 1 : 0; // MusicKit: 0 off, 1 one, 2 all
 const audio = $('#previewAudio'); audio.volume = .8;
 
 function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms); }
@@ -630,7 +634,7 @@ const L = {
     radio_need: '先在「设置」里连接 Apple 账户才能听电台', radio_playing: '正在播放电台：', radio_fail: '电台播放失败，稍后再试',
     lib_sub: '你账户里的歌单和歌曲', lib_new: '＋ 新建歌单', my_playlists: '我的歌单', lib_artists: '资料库歌手', lib_songs: '资料库歌曲',
     lib_empty: '资料库是空的', lib_loading: '加载资料库中…', lib_fail: '资料库加载失败', lib_signin: '还没连接 Apple 账户。<br>去「设置」里连接后，这里会出现你的歌单和资料库',
-    artist_loading: '加载歌手主页中…', artist_fail: '歌手主页打开失败，检查网络后重试', play_top_songs: '▶ 播放热门歌曲', fav_artist: '收藏歌手', artist_faved: '已收藏歌手',
+    artist_loading: '加载歌手主页中…', artist_fail: '歌手主页打开失败，检查网络后重试', play_top_songs: '▶ 播放热门歌曲', fav_artist: '收藏歌手', artist_faved: '已收藏歌手', fav_album: '收藏专辑', album_faved: '已收藏专辑',
     similar_artists: '相似歌手', artist_open_fail: '这位歌手的主页暂时打不开', artist_lib_fail: '这位歌手的曲库主页暂时打不开', artist_open_failed: '打开歌手主页失败', artist_fallback: '歌手', album_open_fail: '这张专辑暂时打不开',
     play_all: '▶ 播放全部', shuffle_play: '随机播放', edit_name: '编辑名称', delete_playlist: '删除歌单', del: '删除', empty_playlist: '这个歌单暂时没有歌曲', open_fail: '打开失败，检查网络后重试', songs_count: '{0} 首歌曲', back: '返回',
     add_to_playlist: '添加到歌单', loading_playlists: '加载歌单中…', playlists_fail: '歌单加载失败', new_playlist: '新建歌单', playlist_name_ph: '歌单名称', cancel: '取消', create: '创建', save: '保存',
@@ -666,7 +670,7 @@ const L = {
     radio_need: 'Connect your Apple account in Settings to play stations', radio_playing: 'Playing station: ', radio_fail: "Couldn't play the station. Try again later.",
     lib_sub: 'Your playlists and songs', lib_new: '＋ New Playlist', my_playlists: 'My Playlists', lib_artists: 'Library Artists', lib_songs: 'Library Songs',
     lib_empty: 'Your library is empty', lib_loading: 'Loading your library…', lib_fail: "Couldn't load your library", lib_signin: 'Not connected yet.<br>Connect in Settings to see your playlists and library here.',
-    artist_loading: 'Loading artist…', artist_fail: "Couldn't open the artist page. Check your connection and retry.", play_top_songs: '▶ Play Top Songs', fav_artist: 'Favorite Artist', artist_faved: 'Favorited',
+    artist_loading: 'Loading artist…', artist_fail: "Couldn't open the artist page. Check your connection and retry.", play_top_songs: '▶ Play Top Songs', fav_artist: 'Favorite Artist', artist_faved: 'Favorited', fav_album: 'Favorite Album', album_faved: 'Favorited',
     similar_artists: 'Similar Artists', artist_open_fail: "This artist page can't open right now", artist_lib_fail: "This artist's catalog page can't open right now", artist_open_failed: "Couldn't open the artist page", artist_fallback: 'Artist', album_open_fail: "This album can't open right now",
     play_all: '▶ Play All', shuffle_play: 'Shuffle', edit_name: 'Edit Name', delete_playlist: 'Delete Playlist', del: 'Delete', empty_playlist: 'No songs in this playlist yet', open_fail: "Couldn't open. Check your connection and retry.", songs_count: '{0} songs', back: 'Back',
     add_to_playlist: 'Add to Playlist', loading_playlists: 'Loading playlists…', playlists_fail: "Couldn't load playlists", new_playlist: 'New Playlist', playlist_name_ph: 'Playlist name', cancel: 'Cancel', create: 'Create', save: 'Save',
@@ -1200,6 +1204,28 @@ async function openCollection(kind, id) {
       shuffle = true; $('#btnShuffle').classList.add('on');
       playSongs(colTracks, Math.floor(Math.random() * colTracks.length));
     });
+    if (kind === 'album') {
+      const acts2 = box.querySelector('.colactions');
+      const fb = document.createElement('button'); fb.className = 'btn ghost2'; fb.id = 'colFav';
+      let albumFav = false;
+      const paint = () => { fb.textContent = albumFav ? t('album_faved') : t('fav_album'); fb.style.color = albumFav ? 'var(--accent)' : ''; };
+      paint();
+      acts2.append(fb);
+      if (authorized) {
+        api(`/v1/me/ratings/albums/${id}`).then(chk => { if (chk?.data?.attributes?.value === 1) { albumFav = true; paint(); } }).catch(() => {});
+      }
+      fb.addEventListener('click', async () => {
+        if (!authorized) return toast(t('need_acct_fav'));
+        const was = albumFav; albumFav = !was; paint();
+        try {
+          if (was) {
+            await api(`/v1/me/ratings/albums/${id}`, false, { method: 'DELETE' });
+            try { const chk = await api(`/v1/me/ratings/albums/${id}`); if (chk?.data?.attributes?.value === 1) await api(`/v1/me/ratings/albums/${id}`, false, { method: 'DELETE' }); } catch {}
+            toast(t('unfaved'));
+          } else { await rateWrite('albums', id); toast(t('faved')); }
+        } catch { albumFav = was; paint(); toast(t('fav_fail')); }
+      });
+    }
     if (kind === 'lplaylist') {
       const acts = box.querySelector('.colactions');
       acts.style.flexWrap = 'wrap';
@@ -1416,7 +1442,7 @@ async function startCurrent() {
     try {
       await music.setQueue({ songs: queue.map(s => s.id), startIndex: qIndex });
       music.shuffleMode = shuffle ? 1 : 0;
-      music.repeatMode = repeatMode;
+      music.repeatMode = mkRepeat();
       if (qIndex > 0) { try { await music.changeToMediaAtIndex(qIndex); } catch (e) { console.warn('jump failed', e); } }
       await music.play();
     } catch (e) { console.error(e); toast(t('play_fail_region')); }
@@ -1587,7 +1613,7 @@ $('#miniNext').addEventListener('click', e => { e.stopPropagation(); next(); });
 $('#btnPrev').addEventListener('click', prev);
 $('#miniPrev').addEventListener('click', e => { e.stopPropagation(); prev(); });
 $('#btnShuffle').addEventListener('click', e => { shuffle = !shuffle; e.currentTarget.classList.toggle('on', shuffle); if (music && engine === 'musickit') music.shuffleMode = shuffle ? 1 : 0; toast(shuffle ? t('shuffle_on') : t('shuffle_off')); });
-$('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) % 3; e.currentTarget.classList.toggle('on', repeatMode > 0); if (music && engine === 'musickit') music.repeatMode = repeatMode; toast([t('repeat_off'), t('repeat_all'), t('repeat_one')][repeatMode]); });
+$('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) % 3; e.currentTarget.classList.toggle('on', repeatMode > 0); e.currentTarget.classList.toggle('one', repeatMode === 2); if (music && engine === 'musickit') music.repeatMode = mkRepeat(); toast([t('repeat_off'), t('repeat_all'), t('repeat_one')][repeatMode]); });
 $('#mini').addEventListener('click', openNP);
 $('#np .grab').addEventListener('click', () => $('#np').classList.remove('open'));
 function openNP() { if (cur) { $('#np').classList.add('open'); const VC = window.Capacitor?.Plugins?.VolumeControl; if (VC) VC.getVolume().then(r => { if (r && typeof r.value === 'number') $('#vol').value = Math.round(r.value * 100); }).catch(() => {}); } }
