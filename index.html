@@ -213,6 +213,18 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 #lyrics.show{display:block}
 #lyrics .ln{font-size:19px;font-weight:700;line-height:1.5;padding:5px 0;color:rgba(255,255,255,.45);transition:.25s}
 #lyrics .ln.cur{color:#fff;font-size:21px}
+#queueView{display:none;flex:1;overflow-y:auto;margin-top:14px;padding:6px 2px;text-align:left}
+#queueView.show{display:block}
+#queueView .qh{font-size:13px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;margin:2px 2px 10px}
+.qrow{display:flex;align-items:center;gap:11px;padding:7px 8px;border-radius:13px;cursor:pointer}
+.qrow:active{background:rgba(255,255,255,.14)}
+.qrow img{width:42px;height:42px;border-radius:9px;object-fit:cover;background:rgba(255,255,255,.15)}
+.qrow .qt{min-width:0;flex:1}
+.qrow .qn{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow .qa{font-size:12.5px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow.cur{background:rgba(255,255,255,.13)}
+.qrow.cur .qn{color:var(--accent);filter:brightness(1.7)}
+.qrow .eq{font-size:12px;color:#fff;opacity:.85}
 #npBody{flex:1;display:flex;flex-direction:column;min-height:0}
 #npMain{flex:1;display:flex;flex-direction:column;justify-content:flex-start}
 #toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);z-index:99;opacity:0;pointer-events:none;transition:.3s;
@@ -303,6 +315,7 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
         <div id="npArtist">—</div>
       </div>
       <div id="lyrics"></div>
+      <div id="queueView"></div>
     </div>
     <div class="scrub">
       <input type="range" id="seek" min="0" max="100" step="0.1" value="0">
@@ -573,6 +586,7 @@ audio.addEventListener('play', syncPlayUI); audio.addEventListener('pause', sync
 
 function updateNP() {
   if (!cur) return;
+  if ($('#queueView').classList.contains('show')) renderQueue();
   const a = cur.attributes || {};
   const img = art(a.artwork?.url, 640, 640);
   $('#npArt').src = img; $('#miniArt').src = art(a.artwork?.url, 92, 92);
@@ -622,13 +636,13 @@ $('#mini').addEventListener('click', openNP);
 $('#np .grab').addEventListener('click', () => $('#np').classList.remove('open'));
 function openNP() { if (cur) $('#np').classList.add('open'); }
 $('#pillAir').addEventListener('click', () => toast('AirPlay 请用 iOS 控制中心选择设备'));
-$('#pillQueue').addEventListener('click', () => { $('#np').classList.remove('open'); toast('队列就是当前列表，点任意歌曲切换'); });
 
 /* ---------- animated (motion) artwork ---------- */
 async function tryMotion(song) {
   const vid = $('#npVideo'), img = $('#npArt');
   try {
-    const sd = await api(`/v1/catalog/${sf}/songs/${song.id}?include=albums`);
+    const cid = await resolveCatalogId(song);
+    const sd = await api(`/v1/catalog/${sf}/songs/${cid}?include=albums`);
     const albumId = sd.data?.[0]?.relationships?.albums?.data?.[0]?.id;
     if (!albumId) return;
     const ad = await api(`/v1/catalog/${sf}/albums/${albumId}?extend=editorialVideo`);
@@ -647,20 +661,34 @@ function findVideoUrl(o) {
 }
 
 /* ---------- lyrics ---------- */
-let lyricLines = [];
+let lyricLines = [], lastLyricNote = '';
 function stopLyrics() { lyricLines = []; $('#lyrics').innerHTML = ''; }
+async function resolveCatalogId(song) {
+  if (!song) return null;
+  if (song._cid) return song._cid;
+  const id = String(song.id || '');
+  if (/^\d+$/.test(id)) { song._cid = id; return id; }
+  try {
+    const d = await api(`/v1/me/library/songs/${id}?include=catalog`);
+    const cid = d.data?.[0]?.relationships?.catalog?.data?.[0]?.id;
+    if (cid) { song._cid = cid; return cid; }
+  } catch {}
+  return id;
+}
 async function loadLyrics(song) {
-  stopLyrics();
+  stopLyrics(); lastLyricNote = '';
   if (!authorized) return;
   try {
-    const d = await api(`/v1/catalog/${sf}/songs/${song.id}/lyrics`);
+    const cid = await resolveCatalogId(song);
+    const d = await api(`/v1/catalog/${sf}/songs/${cid}/lyrics`);
     const ttml = d.data?.[0]?.attributes?.ttml;
-    if (!ttml) return;
+    if (!ttml) { lastLyricNote = '苹果没有返回这首歌的歌词数据'; return; }
     const doc = new DOMParser().parseFromString(ttml, 'text/xml');
-    const ps = [...doc.querySelectorAll('p')];
+    const ps = [...doc.querySelectorAll('*')].filter(el => el.localName === 'p');
     lyricLines = ps.map(p => ({ t: parseTTMLTime(p.getAttribute('begin')), text: p.textContent.trim() })).filter(l => l.text);
+    if (!lyricLines.length) lastLyricNote = '歌词解析为空（TTML 无文本行）';
     $('#lyrics').innerHTML = lyricLines.map((l, i) => `<div class="ln" data-i="${i}">${esc(l.text)}</div>`).join('');
-  } catch { /* lyrics unavailable */ }
+  } catch (e) { lastLyricNote = '歌词接口出错：' + (e.message || e); }
 }
 function parseTTMLTime(s) {
   if (!s) return 0;
@@ -678,13 +706,40 @@ function highlightLyric(t) {
     if (!on) el.dataset.s = '';
   });
 }
-$('#pillLyrics').addEventListener('click', e => {
-  const L = $('#lyrics'), M = $('#npMain');
-  const show = !L.classList.contains('show');
-  L.classList.toggle('show', show); M.style.display = show ? 'none' : '';
-  e.currentTarget.classList.toggle('on', show);
-  if (show && !lyricLines.length) L.innerHTML = '<div class="ln cur" style="text-align:center;margin-top:30px">' + (authorized ? '这首歌暂无歌词' : '连接 Apple 账户后可看同步歌词') + '</div>';
-});
+function npView(name) {
+  const L = $('#lyrics'), Q = $('#queueView'), M = $('#npMain');
+  const showL = name === 'lyrics' && !L.classList.contains('show');
+  const showQ = name === 'queue' && !Q.classList.contains('show');
+  L.classList.toggle('show', showL);
+  Q.classList.toggle('show', showQ);
+  M.style.display = (showL || showQ) ? 'none' : '';
+  $('#pillLyrics').classList.toggle('on', showL);
+  $('#pillQueue').classList.toggle('on', showQ);
+  if (showL && !lyricLines.length) L.innerHTML = '<div class="ln cur" style="text-align:center;margin-top:30px">' + (authorized ? '这首歌暂无歌词' + (lastLyricNote ? `<div style="font-size:12px;font-weight:400;color:rgba(255,255,255,.5);margin-top:8px">${esc(lastLyricNote)}</div>` : '') : '连接 Apple 账户后可看同步歌词') + '</div>';
+  if (showQ) renderQueue();
+}
+$('#pillLyrics').addEventListener('click', () => npView('lyrics'));
+$('#pillQueue').addEventListener('click', () => npView('queue'));
+function renderQueue() {
+  const Q = $('#queueView');
+  if (!queue.length) { Q.innerHTML = '<div class="qh">播放队列</div><div style="color:rgba(255,255,255,.6);font-size:14px;padding:4px 2px">队列是空的</div>'; return; }
+  Q.innerHTML = '<div class="qh">播放队列 · 共 ' + queue.length + ' 首</div>' + queue.map((it, i) => {
+    const a = it.attributes || {};
+    const img = a.artwork ? art(a.artwork.url, 92, 92) : 'assets/icon-512.png';
+    return `<div class="qrow ${cur && it.id === cur.id ? 'cur' : ''}" data-qi="${i}"><img src="${img}" alt=""><div class="qt"><div class="qn">${esc(a.name || '—')}</div><div class="qa">${esc(a.artistName || '')}</div></div>${cur && it.id === cur.id ? '<span class="eq">♪♪</span>' : ''}</div>`;
+  }).join('');
+  Q.querySelectorAll('.qrow').forEach(r => r.addEventListener('click', () => jumpToQueue(+r.dataset.qi)));
+  const curEl = Q.querySelector('.qrow.cur'); if (curEl) curEl.scrollIntoView({ block: 'center' });
+}
+async function jumpToQueue(idx) {
+  if (idx === qIndex) return;
+  if (engine === 'musickit' && music) {
+    try { await music.changeToMediaAtIndex(idx); qIndex = idx; cur = queue[idx]; updateNP(); renderQueue(); return; } catch {}
+    try { await music.setQueue({ songs: queue.map(x => x.id), startIndex: idx }); await music.play(); qIndex = idx; cur = queue[idx]; updateNP(); renderQueue(); return; } catch {}
+    toast('这首暂时切不过去'); return;
+  }
+  qIndex = idx; startCurrent(); renderQueue();
+}
 </script>
 </body>
 </html>
