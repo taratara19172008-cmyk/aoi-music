@@ -415,6 +415,12 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
 #bgPrev{display:none;height:110px;border-radius:16px;background-size:cover;background-position:center;box-shadow:var(--glassbtn-shadow);margin-top:4px}
 body.custombg #bgfx::after{content:'';position:absolute;inset:0;background:rgba(247,249,253,.20)}
 body.custombg #bgfx i{opacity:.20;z-index:1}
+
+/* ===== 语言选项 + 壁纸全屏 ===== */
+.langrow{display:flex;gap:10px}
+.langopt{flex:1;height:44px;border-radius:13px;border:none;font:inherit;font-size:15px;font-weight:700;color:var(--ink2);background:rgba(255,255,255,.35);box-shadow:var(--glassbtn-shadow);cursor:pointer}
+.langopt.on{background:var(--accent);color:#fff}
+#bgfx{width:100vw;height:100dvh}
 </style>
 </head>
 <body>
@@ -430,73 +436,79 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
 
 <nav id="rail">
   <div class="logo">♪</div>
-  <button class="navbtn on" data-page="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-4v-6H10v6H6v-9H3z"/></svg>首页</button>
-  <button class="navbtn" data-page="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21" stroke-linecap="round"/></svg>搜索</button>
-  <button class="navbtn" data-page="radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.8 18.2a9.4 9.4 0 0 1 0-12.4M18.2 5.8a9.4 9.4 0 0 1 0 12.4" stroke-linecap="round"/></svg>电台</button>
-  <button class="navbtn" data-page="library"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2.2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2.2"/></svg>资料库</button>
+  <button class="navbtn on" data-page="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-4v-6H10v6H6v-9H3z"/></svg><span data-i18n="nav_home">首页</span></button>
+  <button class="navbtn" data-page="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21" stroke-linecap="round"/></svg><span data-i18n="nav_search">搜索</span></button>
+  <button class="navbtn" data-page="radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.8 18.2a9.4 9.4 0 0 1 0-12.4M18.2 5.8a9.4 9.4 0 0 1 0 12.4" stroke-linecap="round"/></svg><span data-i18n="nav_radio">电台</span></button>
+  <button class="navbtn" data-page="library"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2.2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2.2"/></svg><span data-i18n="nav_library">资料库</span></button>
   <div class="sp"></div>
-  <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke-linecap="round"/></svg>设置</button>
+  <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke-linecap="round"/></svg><span data-i18n="nav_settings">设置</span></button>
 </nav>
 
 <div id="main">
   <section class="page on" id="page-home">
     <h1 class="greet serif" id="greet">晚上好</h1>
-    <p class="sub" id="homeSub">正在加载热门音乐…</p>
+    <p class="sub" id="homeSub" data-i18n="home_loading">正在加载热门音乐…</p>
     <div id="homeContent"></div>
   </section>
 
   <section class="page" id="page-search">
-    <h1 class="greet">搜索</h1>
-    <p class="sub">歌曲、专辑、艺人，全曲库搜索</p>
+    <h1 class="greet" data-i18n="nav_search">搜索</h1>
+    <p class="sub" data-i18n="search_sub">歌曲、专辑、艺人，全曲库搜索</p>
     <div style="height:16px"></div>
-    <div class="searchbar"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#8e8e93" stroke-width="2.4" style="flex:0 0 auto"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21" stroke-linecap="round"/></svg><input id="searchInput" type="search" placeholder="搜索歌曲 / 专辑 / 艺人…" enterkeyhint="search"></div>
+    <div class="searchbar"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#8e8e93" stroke-width="2.4" style="flex:0 0 auto"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21" stroke-linecap="round"/></svg><input id="searchInput" type="search" data-i18n-ph="search_ph" placeholder="搜索歌曲 / 专辑 / 艺人…" enterkeyhint="search"></div>
     <div id="searchHistory"></div>
-    <div id="searchContent"><div class="empty">输入关键词开始搜索</div></div>
+    <div id="searchContent"><div class="empty" data-i18n="search_empty">输入关键词开始搜索</div></div>
   </section>
 
   <section class="page" id="page-library">
-    <h1 class="greet">资料库</h1>
-    <p class="sub" id="libSub">你账户里的歌单和歌曲</p>
+    <h1 class="greet" data-i18n="nav_library">资料库</h1>
+    <p class="sub" id="libSub" data-i18n="lib_sub">你账户里的歌单和歌曲</p>
     <div id="libContent"></div>
   </section>
 
   <section class="page" id="page-radio">
-    <h1 class="greet">电台</h1>
-    <p class="sub">为你推荐的歌单与电台</p>
-    <div id="radioContent"><div class="empty">加载中…</div></div>
+    <h1 class="greet" data-i18n="nav_radio">电台</h1>
+    <p class="sub" data-i18n="radio_sub">为你推荐的歌单与电台</p>
+    <div id="radioContent"><div class="empty" data-i18n="loading">加载中…</div></div>
   </section>
 
   <section class="page" id="page-collection">
-    <button class="backbtn" id="colBack"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M14.5 5L8 12l6.5 7" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</button>
-    <div id="colContent"><div class="empty">加载中…</div></div>
+    <button class="backbtn" id="colBack"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M14.5 5L8 12l6.5 7" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="back">返回</span></button>
+    <div id="colContent"><div class="empty" data-i18n="loading">加载中…</div></div>
   </section>
 
   <section class="page" id="page-settings">
-    <h1 class="greet">设置</h1>
+    <h1 class="greet" data-i18n="nav_settings">设置</h1>
     <div class="panel">
-      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c4.7 0 8.5 3.4 8.5 7.6 0 3.4-2.6 5-5.3 5h-2.1a2.3 2.3 0 0 0-1.8 3.7c.3.3.2.8-.2.8-4.2-.3-7.6-4.3-7.6-9.5 0-4.2 3.8-7.6 8.5-7.6Z"/><circle cx="7.6" cy="10.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="11" cy="7.4" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.2" cy="8.6" r="1.15" fill="currentColor" stroke="none"/></svg>主题色</h3>
-      <p>整个 App 的主色调，选好立即生效，会自动记住。</p>
+      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c4.7 0 8.5 3.4 8.5 7.6 0 3.4-2.6 5-5.3 5h-2.1a2.3 2.3 0 0 0-1.8 3.7c.3.3.2.8-.2.8-4.2-.3-7.6-4.3-7.6-9.5 0-4.2 3.8-7.6 8.5-7.6Z"/><circle cx="7.6" cy="10.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="11" cy="7.4" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.2" cy="8.6" r="1.15" fill="currentColor" stroke="none"/></svg><span data-i18n="theme">主题色</span></h3>
+      <p data-i18n="theme_desc">整个 App 的主色调，选好立即生效，会自动记住。</p>
       <div class="swatches" id="swatches"></div>
     </div>
     <div class="panel">
-      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="9" cy="10" r="1.5"/><path d="M4.5 17.5 10 12l3.2 3.2L16.5 12l3 3.5"/></svg>背景</h3>
-      <p>从图库选一张图当 App 背景。玻璃会透出它的颜色，边缘光线和主题色渗光都会跟着它反应。图片只保存在这台设备上。</p>
+      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="9" cy="10" r="1.5"/><path d="M4.5 17.5 10 12l3.2 3.2L16.5 12l3 3.5"/></svg><span data-i18n="background">背景</span></h3>
+      <p data-i18n="bg_desc">从图库选一张图当 App 背景。玻璃会透出它的颜色，边缘光线和主题色渗光都会跟着它反应。图片只保存在这台设备上。</p>
       <div id="bgPrev"></div>
       <div style="height:12px"></div>
-      <button class="btn" id="btnBgPick">从图库选择</button>
-      <button class="btn ghost" id="btnBgClear" style="display:none">恢复默认</button>
+      <button class="btn" id="btnBgPick" data-i18n="bg_pick">从图库选择</button>
+      <button class="btn ghost" id="btnBgClear" style="display:none" data-i18n="bg_reset">恢复默认</button>
       <input type="file" id="bgFile" accept="image/*" hidden>
     </div>
     <div class="panel">
-      <h3><svg class="picon" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>Apple 账户</h3>
-      <p id="acctDesc">连接你的 Apple 账户后可以播放完整歌曲、查看你的资料库和歌单。登录在苹果官方弹窗里完成，本页接触不到你的密码。</p>
+      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4c2.5 2.3 3.8 5.2 3.8 8.6s-1.3 6.3-3.8 8.6c-2.5-2.3-3.8-5.2-3.8-8.6s1.3-6.3 3.8-8.6Z"/></svg><span data-i18n="language">语言</span></h3>
+      <p data-i18n="lang_desc">界面语言，切换后软件里所有文字都会换。</p>
       <div style="height:12px"></div>
-      <button class="btn" id="acctBtn">连接 Apple 账户</button>
-      <button class="btn ghost" id="signOutBtn" style="display:none">断开连接</button>
+      <div class="langrow"><button class="langopt" data-lang="zh">中文</button><button class="langopt" data-lang="en">English</button></div>
     </div>
     <div class="panel">
-      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 11.2V16"/><circle cx="12" cy="7.9" r="1.25" fill="currentColor" stroke="none"/></svg>关于</h3>
-      <p>あおいミュージック AoiMusic · 第三方 Apple Music 网页客户端<br>未连接账户时播放的是 30 秒试听；连接有订阅的账户后播放完整歌曲。<br>曲库区域：<span id="sfLabel">cn</span></p>
+      <h3><svg class="picon" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg><span data-i18n="account_h">Apple 账户</span></h3>
+      <p id="acctDesc" data-i18n="acct_desc">连接你的 Apple 账户后可以播放完整歌曲、查看你的资料库和歌单。登录在苹果官方弹窗里完成，本页接触不到你的密码。</p>
+      <div style="height:12px"></div>
+      <button class="btn" id="acctBtn" data-i18n="connect">连接 Apple 账户</button>
+      <button class="btn ghost" id="signOutBtn" style="display:none" data-i18n="disconnect">断开连接</button>
+    </div>
+    <div class="panel">
+      <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 11.2V16"/><circle cx="12" cy="7.9" r="1.25" fill="currentColor" stroke="none"/></svg><span data-i18n="about">关于</span></h3>
+      <p id="aboutText">あおいミュージック AoiMusic · 第三方 Apple Music 网页客户端<br>未连接账户时播放的是 30 秒试听；连接有订阅的账户后播放完整歌曲。<br>曲库区域：<span id="sfLabel">cn</span></p>
     </div>
   </section>
 </div>
@@ -539,9 +551,9 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
     </div>
     <div class="vol"><span><svg viewBox="0 0 24 24" width="17" height="17" fill="rgba(255,255,255,.75)"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></span><input type="range" id="vol" min="0" max="100" value="80"><span><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><path d="M3 9v6h4l6 5V4L7 9H3z" fill="rgba(255,255,255,.85)" stroke="none"/><path d="M16 9a4.5 4.5 0 0 1 0 6M18.4 6.6a8 8 0 0 1 0 10.8" stroke-linecap="round"/></svg></span></div>
     <div class="pills">
-      <button class="pill" id="pillLyrics">♪ 歌词</button>
+      <button class="pill" id="pillLyrics" data-i18n="lyrics_pill">♪ 歌词</button>
       <button class="pill" id="pillAir"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="M12 13.5l3.2 4.5H8.8z" fill="currentColor" stroke="none"/></svg> AirPlay</button>
-      <button class="pill" id="pillQueue">☰ 队列</button>
+      <button class="pill" id="pillQueue" data-i18n="queue_pill">☰ 队列</button>
     </div>
   </div>
 </div>
@@ -600,13 +612,121 @@ if (RELAY && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js?relay=' + encodeURIComponent(RELAY)).catch(() => {});
 }
 
+
+/* ---------- i18n ---------- */
+let lang = 'zh';
+try { lang = localStorage.getItem('aoi-lang') || 'zh'; } catch {}
+const L = {
+  zh: {
+    nav_home: '首页', nav_search: '搜索', nav_radio: '电台', nav_library: '资料库', nav_settings: '设置',
+    greet_late: '夜深了', greet_morning: '上午好', greet_noon: '中午好', greet_afternoon: '下午好', greet_evening: '晚上好',
+    home_loading: '正在加载热门音乐…', home_sub: '为你精选 · 今日热门', home_fail: '加载失败，检查网络后刷新', mk_fail: 'MusicKit 初始化失败，稍后刷新重试',
+    feat_playlists: '精选歌单', recent_played: '最近播放', top_songs: '热门歌曲', top_albums: '热门专辑',
+    search_sub: '歌曲、专辑、艺人，全曲库搜索', search_ph: '搜索歌曲 / 专辑 / 艺人…', search_empty: '输入关键词开始搜索', searching: '搜索中…', search_none: '没找到相关内容', search_fail: '搜索失败，检查网络后重试',
+    recent_searches: '最近搜索', clear: '清除', kind_song: '歌曲', kind_album: '专辑', kind_playlist: '歌单', kind_artist: '艺人',
+    sec_songs: '歌曲', sec_albums: '专辑', sec_playlists: '歌单', sec_artists: '歌手',
+    radio_sub: '为你推荐的歌单与电台', loading: '加载中…', rec_loading: '加载推荐中…', rec_playlists: '推荐歌单', stations: '电台', station_sub: '电台 · 点播即播',
+    rec_empty: '暂时没有推荐内容', rec_fail: '推荐加载失败，检查网络后重试', rec_signin: '' + t('rec_signin') + '', for_you: '为你推荐',
+    radio_need: '先在「设置」里连接 Apple 账户才能听电台', radio_playing: '正在播放电台：', radio_fail: '电台播放失败，稍后再试',
+    lib_sub: '你账户里的歌单和歌曲', lib_new: '＋ 新建歌单', my_playlists: '我的歌单', lib_artists: '资料库歌手', lib_songs: '资料库歌曲',
+    lib_empty: '资料库是空的', lib_loading: '加载资料库中…', lib_fail: '资料库加载失败', lib_signin: '还没连接 Apple 账户。<br>去「设置」里连接后，这里会出现你的歌单和资料库',
+    artist_loading: '加载歌手主页中…', artist_fail: '歌手主页打开失败，检查网络后重试', play_top_songs: '▶ 播放热门歌曲', fav_artist: '收藏歌手', artist_faved: '已收藏歌手',
+    similar_artists: '相似歌手', artist_open_fail: '这位歌手的主页暂时打不开', artist_lib_fail: '这位歌手的曲库主页暂时打不开', artist_open_failed: '打开歌手主页失败', artist_fallback: '歌手', album_open_fail: '这张专辑暂时打不开',
+    play_all: '▶ 播放全部', shuffle_play: '随机播放', edit_name: '编辑名称', delete_playlist: '删除歌单', del: '删除', empty_playlist: '这个歌单暂时没有歌曲', open_fail: '打开失败，检查网络后重试', songs_count: '{0} 首歌曲', back: '返回',
+    add_to_playlist: '添加到歌单', loading_playlists: '加载歌单中…', playlists_fail: '歌单加载失败', new_playlist: '新建歌单', playlist_name_ph: '歌单名称', cancel: '取消', create: '创建', save: '保存',
+    rename_playlist: '重命名歌单', delete_confirm: '确定要删除「{0}」吗？删除后无法恢复。', name_first: '先给歌单起个名字', name_empty: '名字不能为空',
+    created_and_added: '已新建歌单并添加这首歌', created: '歌单已创建', create_fail: '创建歌单失败，再试一次', renamed: '已改名', rename_fail: '改名失败，再试一次',
+    deleted: '歌单已删除', delete_fail: '删除失败，再试一次', added_to: '已添加到歌单', add_fail: '添加失败，再试一次', removed_from: '已从歌单移除', remove_fail_prefix: '移除失败：', unknown_error: '未知错误',
+    need_acct_fav: '先在设置里连接 Apple 账户才能收藏', need_acct_fav_artist: '先在设置里连接 Apple 账户才能收藏歌手', need_acct: '先在设置里连接 Apple 账户',
+    faved: '已收藏', unfaved: '已取消收藏', fav_fail: '收藏操作失败，再试一次', artist_unfaved: '已取消收藏歌手', artist_fav_fail: '收藏歌手失败，再试一次',
+    acct_desc: '连接你的 Apple 账户后可以播放完整歌曲、查看你的资料库和歌单。登录在苹果官方弹窗里完成，本页接触不到你的密码。', acct_desc_on: '已连接 Apple 账户，现在可以播放完整歌曲、查看资料库。',
+    connect: '连接 Apple 账户', disconnect: '断开连接', mk_not_ready: 'MusicKit 还没加载好，稍等几秒再试', connected_toast: '已连接，现在点歌就是完整版了', connect_fail: '连接取消或失败', disconnected: '已断开',
+    theme: '主题色', theme_desc: '整个 App 的主色调，选好立即生效，会自动记住。', custom_color: '自定义颜色',
+    preset_0: '原版红', preset_1: '海蓝', preset_2: '葡萄紫', preset_3: '薄荷绿', preset_4: '落日橙', preset_5: '樱花粉', preset_6: '天空青',
+    background: '背景', bg_desc: '从图库选一张图当 App 背景。玻璃会透出它的颜色，边缘光线和主题色渗光都会跟着它反应。图片只保存在这台设备上。', bg_pick: '从图库选择', bg_reset: '恢复默认',
+    bg_done: '背景换好了', bg_done_nosave: '换好了，但图太大存不下，重启后要重选', bg_read_fail: '这张图读不出来，换一张试试', bg_reset_done: '已恢复默认背景',
+    account_h: 'Apple 账户', about: '关于', about_text: 'あおいミュージック AoiMusic · 第三方 Apple Music 网页客户端<br>未连接账户时播放的是 30 秒试听；连接有订阅的账户后播放完整歌曲。<br>曲库区域：<span id="sfLabel">cn</span>',
+    language: '语言', lang_desc: '界面语言，切换后软件里所有文字都会换。',
+    mode_full: '完整版', mode_preview: '试听 30 秒', lyrics_pill: '♪ 歌词', queue_pill: '☰ 队列', no_lyrics: t('no_lyrics'), lyrics_signin: t('lyrics_signin'),
+    lyrics_none_note: '苹果没有返回这首歌的歌词数据', lyrics_empty_note: '歌词解析为空（TTML 无文本行）', lyrics_no_data: '歌词接口无数据', lyrics_err_prefix: '歌词接口出错：', empty_lyrics_ret: '返回了空歌词',
+    queue_title: '播放队列', queue_count: '播放队列 · 共 {0} 首', queue_empty: '队列是空的',
+    shuffle_on: '随机播放开', shuffle_off: '随机播放关', repeat_off: '循环关', repeat_all: '循环全部', repeat_one: '单曲循环',
+    airplay_hint: 'AirPlay 请用 iOS 控制中心选择设备', pick_song_first: '先选一首歌吧', play_fail_region: '播放失败：该歌曲可能不在你的订阅区域', no_preview: '这首歌没有试听片段', jump_fail: '这首暂时切不过去'
+  },
+  en: {
+    nav_home: 'Home', nav_search: 'Search', nav_radio: 'Radio', nav_library: 'Library', nav_settings: 'Settings',
+    greet_late: 'Still up late', greet_morning: 'Good morning', greet_noon: 'Good afternoon', greet_afternoon: 'Good afternoon', greet_evening: 'Good evening',
+    home_loading: 'Loading top music…', home_sub: 'Made for you · Trending today', home_fail: 'Failed to load. Check your connection and refresh.', mk_fail: 'MusicKit failed to initialize. Refresh and try again.',
+    feat_playlists: 'Featured Playlists', recent_played: 'Recently Played', top_songs: 'Top Songs', top_albums: 'Top Albums',
+    search_sub: 'Songs, albums, artists — the full catalog', search_ph: 'Search songs / albums / artists…', search_empty: 'Type to start searching', searching: 'Searching…', search_none: 'No results found', search_fail: 'Search failed. Check your connection and retry.',
+    recent_searches: 'Recent Searches', clear: 'Clear', kind_song: 'Song', kind_album: 'Album', kind_playlist: 'Playlist', kind_artist: 'Artist',
+    sec_songs: 'Songs', sec_albums: 'Albums', sec_playlists: 'Playlists', sec_artists: 'Artists',
+    radio_sub: 'Playlists and stations picked for you', loading: 'Loading…', rec_loading: 'Loading recommendations…', rec_playlists: 'Recommended Playlists', stations: 'Stations', station_sub: 'Station · Tap to play',
+    rec_empty: 'Nothing recommended right now', rec_fail: 'Failed to load recommendations. Retry later.', rec_signin: 'Connect your Apple account to see personal recommendations and your stations here.', for_you: 'For You',
+    radio_need: 'Connect your Apple account in Settings to play stations', radio_playing: 'Playing station: ', radio_fail: "Couldn't play the station. Try again later.",
+    lib_sub: 'Your playlists and songs', lib_new: '＋ New Playlist', my_playlists: 'My Playlists', lib_artists: 'Library Artists', lib_songs: 'Library Songs',
+    lib_empty: 'Your library is empty', lib_loading: 'Loading your library…', lib_fail: "Couldn't load your library", lib_signin: 'Not connected yet.<br>Connect in Settings to see your playlists and library here.',
+    artist_loading: 'Loading artist…', artist_fail: "Couldn't open the artist page. Check your connection and retry.", play_top_songs: '▶ Play Top Songs', fav_artist: 'Favorite Artist', artist_faved: 'Favorited',
+    similar_artists: 'Similar Artists', artist_open_fail: "This artist page can't open right now", artist_lib_fail: "This artist's catalog page can't open right now", artist_open_failed: "Couldn't open the artist page", artist_fallback: 'Artist', album_open_fail: "This album can't open right now",
+    play_all: '▶ Play All', shuffle_play: 'Shuffle', edit_name: 'Edit Name', delete_playlist: 'Delete Playlist', del: 'Delete', empty_playlist: 'No songs in this playlist yet', open_fail: "Couldn't open. Check your connection and retry.", songs_count: '{0} songs', back: 'Back',
+    add_to_playlist: 'Add to Playlist', loading_playlists: 'Loading playlists…', playlists_fail: "Couldn't load playlists", new_playlist: 'New Playlist', playlist_name_ph: 'Playlist name', cancel: 'Cancel', create: 'Create', save: 'Save',
+    rename_playlist: 'Rename Playlist', delete_confirm: 'Delete "{0}"? This can\'t be undone.', name_first: 'Give the playlist a name first', name_empty: "Name can't be empty",
+    created_and_added: 'Playlist created and song added', created: 'Playlist created', create_fail: "Couldn't create the playlist. Try again.", renamed: 'Renamed', rename_fail: 'Rename failed. Try again.',
+    deleted: 'Playlist deleted', delete_fail: 'Delete failed. Try again.', added_to: 'Added to playlist', add_fail: 'Add failed. Try again.', removed_from: 'Removed from playlist', remove_fail_prefix: 'Remove failed: ', unknown_error: 'Unknown error',
+    need_acct_fav: 'Connect your Apple account in Settings to favorite', need_acct_fav_artist: 'Connect your Apple account in Settings to favorite artists', need_acct: 'Connect your Apple account in Settings',
+    faved: 'Added to favorites', unfaved: 'Removed from favorites', fav_fail: 'Favorite failed. Try again.', artist_unfaved: 'Artist removed from favorites', artist_fav_fail: 'Failed. Try again.',
+    acct_desc: 'Connect your Apple account to play full songs and see your library and playlists. Sign-in happens in Apple\'s official popup — this page never sees your password.', acct_desc_on: 'Apple account connected. Full songs and your library are available.',
+    connect: 'Connect Apple Account', disconnect: 'Disconnect', mk_not_ready: "MusicKit isn't ready yet. Try again in a few seconds.", connected_toast: 'Connected — songs now play in full.', connect_fail: 'Connection cancelled or failed', disconnected: 'Disconnected',
+    theme: 'Theme Color', theme_desc: "The app's accent color. Applies instantly and is remembered.", custom_color: 'Custom color',
+    preset_0: 'Original Red', preset_1: 'Ocean Blue', preset_2: 'Grape Purple', preset_3: 'Mint Green', preset_4: 'Sunset Orange', preset_5: 'Sakura Pink', preset_6: 'Sky Cyan',
+    background: 'Background', bg_desc: 'Pick a photo as the app background. The glass picks up its colors, and the rim light and accent glow react to it. The image stays on this device only.', bg_pick: 'Choose from Library', bg_reset: 'Reset to Default',
+    bg_done: 'Background updated', bg_done_nosave: "Applied, but the image is too large to save — you'll need to pick it again after a restart.", bg_read_fail: "Couldn't read that image. Try another.", bg_reset_done: 'Default background restored',
+    account_h: 'Apple Account', about: 'About', about_text: 'あおいミュージック AoiMusic · a third-party Apple Music web client<br>Without an account you hear 30-second previews; connect a subscribed account for full songs.<br>Storefront: <span id="sfLabel">cn</span>',
+    language: 'Language', lang_desc: 'Interface language. Everything in the app switches.',
+    mode_full: 'Full', mode_preview: 'Preview 30s', lyrics_pill: '♪ Lyrics', queue_pill: '☰ Queue', no_lyrics: 'No lyrics for this song', lyrics_signin: 'Connect your Apple account for synced lyrics',
+    lyrics_none_note: 'Apple returned no lyric data for this song', lyrics_empty_note: 'Lyrics parsed empty (no TTML lines)', lyrics_no_data: 'No data from the lyrics service', lyrics_err_prefix: 'Lyrics error: ', empty_lyrics_ret: 'Empty lyrics returned',
+    queue_title: 'Play Queue', queue_count: 'Play Queue · {0} songs', queue_empty: 'The queue is empty',
+    shuffle_on: 'Shuffle on', shuffle_off: 'Shuffle off', repeat_off: 'Repeat off', repeat_all: 'Repeat all', repeat_one: 'Repeat one',
+    airplay_hint: 'Use the iOS Control Center to pick an AirPlay device', pick_song_first: 'Pick a song first', play_fail_region: 'Playback failed: this song may not be available in your subscription region', no_preview: 'No preview for this song', jump_fail: "Can't jump to that one right now"
+  }
+};
+function t(k, a) { let str = (L[lang] && L[lang][k]) || L.zh[k] || k; if (a !== undefined) str = str.replace('{0}', a); return str; }
+let lastDetail = null;
+let lastSearchTerm = '';
+function applyI18n() {
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('.langopt').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  document.querySelectorAll('.sw').forEach(b => { if (b.dataset.i !== undefined) b.title = t('preset_' + b.dataset.i); });
+  const ci = document.querySelector('input.custom'); if (ci) ci.title = t('custom_color');
+  const ab = $('#aboutText');
+  if (ab) { ab.innerHTML = t('about_text'); const s2 = $('#sfLabel'); if (s2) s2.textContent = sf; }
+  syncAccountUI();
+}
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem('aoi-lang', l); } catch {}
+  applyI18n();
+  homeLoaded = false; libLoaded = false; radioLoaded = false;
+  const on = document.querySelector('.page.on')?.id || 'page-home';
+  if (on === 'page-home') loadHome();
+  else if (on === 'page-library') loadLibrary();
+  else if (on === 'page-radio') loadRadio();
+  else if (on === 'page-search') { renderSearchHist(); if (lastSearchTerm) doSearch(lastSearchTerm); }
+  else if (on === 'page-collection' && lastDetail) { const d = lastDetail; if (d.type === 'artist') openArtist(d.id); else openCollection(d.kind, d.id); }
+  if (cur) { updateNP(); if ($('#np').classList.contains('open')) renderQueue(); }
+}
+document.querySelectorAll('.langopt').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+applyI18n();
+
 /* ---------- theme ---------- */
 const PRESETS = [['原版红', '#fa2d48'], ['海蓝', '#0a84ff'], ['葡萄紫', '#bf5af2'], ['薄荷绿', '#30d158'], ['落日橙', '#ff9f0a'], ['樱花粉', '#ff6482'], ['天空青', '#40c8e0']];
 function setAccent(c) { document.documentElement.style.setProperty('--accent', c); localStorage.setItem('aoi-accent', c); document.querySelector('meta[name=theme-color]').content = c; document.querySelectorAll('.sw').forEach(el => el.classList.toggle('on', el.dataset.c === c)); }
 (function initTheme() {
   const wrap = $('#swatches');
-  for (const [name, c] of PRESETS) { const b = document.createElement('button'); b.className = 'sw'; b.title = name; b.dataset.c = c; b.style.background = c; b.addEventListener('click', () => setAccent(c)); wrap.appendChild(b); }
-  const cust = document.createElement('input'); cust.type = 'color'; cust.className = 'custom'; cust.title = '自定义颜色'; cust.addEventListener('input', e => setAccent(e.target.value)); wrap.appendChild(cust);
+  PRESETS.forEach(([name, c], i) => { const b = document.createElement('button'); b.className = 'sw'; b.title = t('preset_' + i); b.dataset.i = i; b.dataset.c = c; b.style.background = c; b.addEventListener('click', () => setAccent(c)); wrap.appendChild(b); });
+  const cust = document.createElement('input'); cust.type = 'color'; cust.className = 'custom'; cust.title = t('custom_color'); cust.addEventListener('input', e => setAccent(e.target.value)); wrap.appendChild(cust);
   setAccent(localStorage.getItem('aoi-accent') || '#fa2d48');
 })();
 
@@ -614,6 +734,7 @@ function setAccent(c) { document.documentElement.style.setProperty('--accent', c
 document.querySelectorAll('#rail .navbtn').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#rail .navbtn').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + b.dataset.page));
+  lastDetail = null;
   if (b.dataset.page === 'library') loadLibrary();
   if (b.dataset.page === 'radio') loadRadio();
   window.scrollTo({ top: 0 });
@@ -630,43 +751,43 @@ document.addEventListener('musickitloaded', async () => {
     music.addEventListener('playbackStateDidChange', syncPlayUI);
     music.addEventListener('nowPlayingItemDidChange', () => { if (engine === 'musickit') syncFromMusicKit(); });
     loadHome();
-  } catch (e) { console.error(e); $('#homeSub').textContent = 'MusicKit 初始化失败，稍后刷新重试'; loadHome(); }
+  } catch (e) { console.error(e); $('#homeSub').textContent = t('mk_fail'); loadHome(); }
 });
 setTimeout(() => { if (!music) loadHome(); }, 3500); // fallback: catalog works with plain fetch too
 
 function syncAccountUI() {
   $('#acctBtn').style.display = authorized ? 'none' : '';
   $('#signOutBtn').style.display = authorized ? '' : 'none';
-  if (authorized) $('#acctDesc').textContent = '已连接 Apple 账户，现在可以播放完整歌曲、查看资料库。';
+  $('#acctDesc').textContent = authorized ? t('acct_desc_on') : t('acct_desc');
 }
 $('#acctBtn').addEventListener('click', async () => {
-  if (!music) { toast('MusicKit 还没加载好，稍等几秒再试'); return; }
+  if (!music) { toast(t('mk_not_ready')); return; }
   try {
     await music.authorize();
     authorized = true;
     if (music.storefrontId) { sf = music.storefrontId; $('#sfLabel').textContent = sf; }
-    syncAccountUI(); toast('已连接，现在点歌就是完整版了'); loadHome(); loadLibrary();
-  } catch (e) { toast('连接取消或失败'); }
+    syncAccountUI(); toast(t('connected_toast')); loadHome(); loadLibrary();
+  } catch (e) { toast(t('connect_fail')); }
 });
-$('#signOutBtn').addEventListener('click', async () => { try { await music.unauthorize(); } catch {} authorized = false; engine = 'preview'; syncAccountUI(); toast('已断开'); });
+$('#signOutBtn').addEventListener('click', async () => { try { await music.unauthorize(); } catch {} authorized = false; engine = 'preview'; syncAccountUI(); toast(t('disconnected')); });
 
 /* ---------- home ---------- */
 let homeLoaded = false;
 async function loadHome() {
   if (homeLoaded) return; homeLoaded = true;
   const h = new Date().getHours();
-  $('#greet').textContent = h < 6 ? '夜深了' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
+  $('#greet').textContent = h < 6 ? t('greet_late') : h < 12 ? t('greet_morning') : h < 14 ? t('greet_noon') : h < 18 ? t('greet_afternoon') : t('greet_evening');
   try {
     const d = await api(`/v1/catalog/${sf}/charts?types=songs,albums,playlists&limit=24`);
     const songs = d.results.songs?.[0]?.data || [];
     const albums = d.results.albums?.[0]?.data || [];
     const pls = d.results.playlists?.[0]?.data || [];
-    $('#homeSub').textContent = '为你精选 · 今日热门';
+    $('#homeSub').textContent = t('home_sub');
     let html = '';
-    if (pls.length) html += '<h2 class="sec">精选歌单</h2><div class="hscroll">' + pls.slice(0, 10).map(p => cardHTML(p, 'playlist')).join('') + '</div>';
+    if (pls.length) html += '<h2 class="sec">' + t('feat_playlists') + '</h2><div class="hscroll">' + pls.slice(0, 10).map(p => cardHTML(p, 'playlist')).join('') + '</div>';
     html += '<div id="homeHistory"></div>';
-    if (songs.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows">' + songs.slice(0, 12).map((s, i) => rowHTML(s, i)).join('') + '</div>';
-    if (albums.length) html += '<h2 class="sec">热门专辑</h2><div class="hscroll">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
+    if (songs.length) html += '<h2 class="sec">' + t('top_songs') + '</h2><div class="rows">' + songs.slice(0, 12).map((s, i) => rowHTML(s, i)).join('') + '</div>';
+    if (albums.length) html += '<h2 class="sec">' + t('top_albums') + '</h2><div class="hscroll">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
     $('#homeContent').innerHTML = html;
     bindSongRows($('#homeContent'), songs);
     bindCards($('#homeContent'));
@@ -677,7 +798,7 @@ async function loadHome() {
         if (rd.data?.length) { histApple = true; renderHomeHistory(rd.data); }
       } catch {}
     }
-  } catch (e) { console.error(e); $('#homeSub').textContent = '加载失败，检查网络后刷新'; homeLoaded = false; }
+  } catch (e) { console.error(e); $('#homeSub').textContent = t('home_fail'); homeLoaded = false; }
 }
 function cardHTML(item, kind) {
   const a = item.attributes || {};
@@ -726,18 +847,23 @@ function applyCustomBg(dataUrl) {
     bgfxEl.style.backgroundImage = `url(${dataUrl})`;
     bgfxEl.style.backgroundSize = 'cover';
     bgfxEl.style.backgroundPosition = 'center';
+    document.body.style.backgroundImage = `url(${dataUrl})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
     if (prev) { prev.style.display = 'block'; prev.style.backgroundImage = `url(${dataUrl})`; }
     if (clear) clear.style.display = '';
   } else {
     document.body.classList.remove('custombg');
     bgfxEl.style.backgroundImage = ''; bgfxEl.style.backgroundSize = ''; bgfxEl.style.backgroundPosition = '';
+    document.body.style.backgroundImage = ''; document.body.style.backgroundSize = ''; document.body.style.backgroundPosition = ''; document.body.style.backgroundAttachment = '';
     if (prev) { prev.style.display = 'none'; prev.style.backgroundImage = ''; }
     if (clear) clear.style.display = 'none';
   }
 }
 try { const savedBg = localStorage.getItem('aoi-bg'); if (savedBg) applyCustomBg(savedBg); } catch {}
 $('#btnBgPick')?.addEventListener('click', () => $('#bgFile').click());
-$('#btnBgClear')?.addEventListener('click', () => { try { localStorage.removeItem('aoi-bg'); } catch {} applyCustomBg(null); toast('已恢复默认背景'); });
+$('#btnBgClear')?.addEventListener('click', () => { try { localStorage.removeItem('aoi-bg'); } catch {} applyCustomBg(null); toast(t('bg_reset_done')); });
 $('#bgFile')?.addEventListener('change', e => {
   const f = e.target.files?.[0];
   e.target.value = '';
@@ -753,9 +879,9 @@ $('#bgFile')?.addEventListener('change', e => {
     let saved = true;
     try { localStorage.setItem('aoi-bg', url); } catch { saved = false; }
     applyCustomBg(url);
-    toast(saved ? '背景换好了' : '换好了，但图太大存不下，重启后要重选');
+    toast(saved ? t('bg_done') : t('bg_done_nosave'));
   };
-  img.onerror = () => toast('这张图读不出来，换一张试试');
+  img.onerror = () => toast(t('bg_read_fail'));
   img.src = URL.createObjectURL(f);
 });
 
@@ -782,7 +908,7 @@ async function rateWrite(kind, id) {
   catch { await api(`/v1/me/ratings/${kind}/${id}`, false, { method: 'POST', body }); }
 }
 async function toggleFav(song) {
-  if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏');
+  if (!authorized) return toast(t('need_acct_fav'));
   const kind = song.type === 'library-songs' ? 'library-songs' : 'songs';
   const key = kind + ':' + song.id;
   const wasOn = !!favCache.get(key);
@@ -795,12 +921,12 @@ async function toggleFav(song) {
         const chk = await api(`/v1/me/ratings/${kind}/${song.id}`);
         if (chk?.data?.attributes?.value === 1) await api(`/v1/me/ratings/${kind}/${song.id}`, false, { method: 'DELETE' });
       } catch {}
-      toast('已取消收藏');
-    } else { await rateWrite(kind, song.id); toast('已收藏'); }
+      toast(t('unfaved'));
+    } else { await rateWrite(kind, song.id); toast(t('faved')); }
   } catch {
     if (wasOn) { favCache.set(key, true); favOff.delete(key); } else { favCache.delete(key); favOff.add(key); }
     paintFavs();
-    toast('收藏操作失败，再试一次');
+    toast(t('fav_fail'));
   }
 }
 async function syncNpFav() {
@@ -820,12 +946,12 @@ async function syncNpFav() {
 $('#npFav').addEventListener('click', () => { if (cur) toggleFav(cur); });
 function paintArtistFav(id, btn) {
   const on = !!favCache.get('artists:' + id);
-  btn.innerHTML = HEART_SVG.replace('<svg ', '<svg style="width:17px;height:17px;vertical-align:-3px;margin-right:6px" ') + (on ? '已收藏歌手' : '收藏歌手');
+  btn.innerHTML = HEART_SVG.replace('<svg ', '<svg style="width:17px;height:17px;vertical-align:-3px;margin-right:6px" ') + (on ? t('artist_faved') : t('fav_artist'));
   btn.style.color = on ? 'var(--accent)' : '';
   if (on) btn.querySelector('path')?.setAttribute('fill', 'currentColor');
 }
 async function toggleArtistFav(id, btn) {
-  if (!authorized) return toast('先在设置里连接 Apple 账户才能收藏歌手');
+  if (!authorized) return toast(t('need_acct_fav_artist'));
   const key = 'artists:' + id;
   const wasOn = !!favCache.get(key);
   if (wasOn) { favCache.delete(key); favOff.add(key); } else { favCache.set(key, true); favOff.delete(key); }
@@ -837,12 +963,12 @@ async function toggleArtistFav(id, btn) {
         const chk = await api(`/v1/me/ratings/artists/${id}`);
         if (chk?.data?.attributes?.value === 1) await api(`/v1/me/ratings/artists/${id}`, false, { method: 'DELETE' });
       } catch {}
-      toast('已取消收藏歌手');
-    } else { await rateWrite('artists', id); toast('已收藏歌手'); }
+      toast(t('artist_unfaved'));
+    } else { await rateWrite('artists', id); toast(t('artist_faved')); }
   } catch {
     if (wasOn) { favCache.set(key, true); favOff.delete(key); } else { favCache.delete(key); favOff.add(key); }
     paintArtistFav(id, btn);
-    toast('收藏歌手失败，再试一次');
+    toast(t('artist_fav_fail'));
   }
 }
 
@@ -852,22 +978,22 @@ function closeSheet() { $('#sheetWrap').classList.remove('open'); }
 $('#sheetWrap').addEventListener('click', e => { if (e.target.id === 'sheetWrap') closeSheet(); });
 
 async function openPlaylistPicker(song) {
-  if (!authorized) return toast('先在设置里连接 Apple 账户');
-  openSheet('<div class="sheettitle">添加到歌单</div><div class="sheetlist" id="sheetList"><div class="empty">加载歌单中…</div></div><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button></div>');
+  if (!authorized) return toast(t('need_acct'));
+  openSheet('<div class="sheettitle">' + t('add_to_playlist') + '</div><div class="sheetlist" id="sheetList"><div class="empty">' + t('loading_playlists') + '</div></div><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">' + t('cancel') + '</button></div>');
   $('#sheetCancel').addEventListener('click', closeSheet);
   try {
     const d = await api('/v1/me/library/playlists?limit=50');
     const list = d.data || [];
-    $('#sheetList').innerHTML = '<div class="sheetrow" id="sheetNew">＋ 新建歌单</div>' + list.map(p => `<div class="sheetrow" data-pid="${p.id}">${esc(p.attributes?.name || '歌单')}</div>`).join('');
+    $('#sheetList').innerHTML = '<div class="sheetrow" id="sheetNew">' + t('lib_new') + '</div>' + list.map(p => `<div class="sheetrow" data-pid="${p.id}">${esc(p.attributes?.name || t('kind_playlist'))}</div>`).join('');
     $('#sheetNew').addEventListener('click', () => sheetCreatePlaylist(song));
     $('#sheetList').querySelectorAll('[data-pid]').forEach(el => el.addEventListener('click', async () => {
       try {
         const cid = await resolveCatalogId(song);
         await api(`/v1/me/library/playlists/${el.dataset.pid}/tracks`, false, { method: 'POST', body: { data: [{ id: cid, type: 'songs' }] } });
-        closeSheet(); toast('已添加到歌单');
-      } catch { toast('添加失败，再试一次'); }
+        closeSheet(); toast(t('added_to'));
+      } catch { toast(t('add_fail')); }
     }));
-  } catch { $('#sheetList').innerHTML = '<div class="empty">歌单加载失败</div>'; }
+  } catch { $('#sheetList').innerHTML = '<div class="empty">' + t('playlists_fail') + '</div>'; }
 }
 /* ---------- 左滑删除 ---------- */
 let openSwipe = null;
@@ -906,42 +1032,42 @@ function makeSwipe(wrap, row, onDelete) {
   del.addEventListener('click', async e => { e.stopPropagation(); await onDelete(); });
 }
 function sheetCreatePlaylist(prefillSong) {
-  openSheet('<div class="sheettitle">新建歌单</div><input id="sheetInput" class="sheetinput" placeholder="歌单名称" maxlength="60"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk">创建</button></div>');
+  openSheet('<div class="sheettitle">' + t('new_playlist') + '</div><input id="sheetInput" class="sheetinput" placeholder="' + t('playlist_name_ph') + '" maxlength="60"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">' + t('cancel') + '</button><button class="btn" id="sheetOk">' + t('create') + '</button></div>');
   const inp = $('#sheetInput'); setTimeout(() => inp.focus(), 60);
   $('#sheetCancel').addEventListener('click', closeSheet);
   $('#sheetOk').addEventListener('click', async () => {
     const name = inp.value.trim();
-    if (!name) return toast('先给歌单起个名字');
+    if (!name) return toast(t('name_first'));
     try {
       const body = { attributes: { name } };
       if (prefillSong) { const cid = await resolveCatalogId(prefillSong); body.relationships = { tracks: { data: [{ id: cid, type: 'songs' }] } }; }
       await api('/v1/me/library/playlists', false, { method: 'POST', body });
-      closeSheet(); libLoaded = false; toast(prefillSong ? '已新建歌单并添加这首歌' : '歌单已创建');
-    } catch { toast('创建歌单失败，再试一次'); }
+      closeSheet(); libLoaded = false; toast(prefillSong ? t('created_and_added') : t('created'));
+    } catch { toast(t('create_fail')); }
   });
 }
 function sheetRenamePlaylist(id, oldName) {
-  openSheet(`<div class="sheettitle">重命名歌单</div><input id="sheetInput" class="sheetinput" maxlength="60" value="${esc(oldName)}"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk">保存</button></div>`);
+  openSheet(`<div class="sheettitle">${t('rename_playlist')}</div><input id="sheetInput" class="sheetinput" maxlength="60" value="${esc(oldName)}"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">${t('cancel')}</button><button class="btn" id="sheetOk">${t('save')}</button></div>`);
   const inp = $('#sheetInput'); setTimeout(() => inp.focus(), 60);
   $('#sheetCancel').addEventListener('click', closeSheet);
   $('#sheetOk').addEventListener('click', async () => {
     const name = inp.value.trim();
-    if (!name) return toast('名字不能为空');
+    if (!name) return toast(t('name_empty'));
     try {
       await api(`/v1/me/library/playlists/${id}`, false, { method: 'PATCH', body: { attributes: { name } } });
-      closeSheet(); libLoaded = false; toast('已改名'); openCollection('lplaylist', id);
-    } catch { toast('改名失败，再试一次'); }
+      closeSheet(); libLoaded = false; toast(t('renamed')); openCollection('lplaylist', id);
+    } catch { toast(t('rename_fail')); }
   });
 }
 function sheetDeletePlaylist(id, name) {
-  openSheet(`<div class="sheettitle">删除歌单</div><p style="font-size:14px;color:var(--ink2);line-height:1.6">确定要删除「${esc(name)}」吗？删除后无法恢复。</p><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">取消</button><button class="btn" id="sheetOk" style="background:#e0243c">删除</button></div>`);
+  openSheet(`<div class="sheettitle">${t('delete_playlist')}</div><p style="font-size:14px;color:var(--ink2);line-height:1.6">${t('delete_confirm', esc(name))}</p><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">${t('cancel')}</button><button class="btn" id="sheetOk" style="background:#e0243c">${t('del')}</button></div>`);
   $('#sheetCancel').addEventListener('click', closeSheet);
   $('#sheetOk').addEventListener('click', async () => {
     try {
       await api(`/v1/me/library/playlists/${id}`, false, { method: 'DELETE' });
-      closeSheet(); libLoaded = false; toast('歌单已删除');
+      closeSheet(); libLoaded = false; toast(t('deleted'));
       document.querySelector('[data-page="library"]')?.click();
-    } catch { toast('删除失败，再试一次'); }
+    } catch { toast(t('delete_fail')); }
   });
 }
 
@@ -960,8 +1086,8 @@ async function songRels(song) {
     return out;
   } catch { return null; }
 }
-function gotoArtistOf(song) { songRels(song).then(r => { if (r?.artistId) { $('#np').classList.remove('open'); openArtist(r.artistId); } else toast('这位歌手的主页暂时打不开'); }); }
-function gotoAlbumOf(song) { songRels(song).then(r => { if (r?.albumId) { $('#np').classList.remove('open'); openCollection('album', r.albumId); } else toast('这张专辑暂时打不开'); }); }
+function gotoArtistOf(song) { songRels(song).then(r => { if (r?.artistId) { $('#np').classList.remove('open'); openArtist(r.artistId); } else toast(t('artist_open_fail')); }); }
+function gotoAlbumOf(song) { songRels(song).then(r => { if (r?.albumId) { $('#np').classList.remove('open'); openCollection('album', r.albumId); } else toast(t('album_open_fail')); }); }
 function bindCards(root) {
   root.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection(c.dataset.kind, c.dataset.id)));
 }
@@ -975,11 +1101,12 @@ function bindArtists(root) {
   root.querySelectorAll('.acard').forEach(c => c.addEventListener('click', () => openArtist(c.dataset.aid)));
 }
 async function openArtist(id) {
-  colFrom = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
-  if (colFrom === 'collection') colFrom = 'home';
+  const cpage = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
+  if (cpage !== 'collection') colFrom = cpage;
   showOnlyPage('page-collection');
   const box = $('#colContent');
-  box.innerHTML = '<div class="empty">加载歌手主页中…</div>';
+  lastDetail = { type: 'artist', id };
+  box.innerHTML = '<div class="empty">' + t('artist_loading') + '</div>';
   try {
     const [base, top, sim] = await Promise.all([
       api(`/v1/catalog/${sf}/artists/${id}?include=albums,playlists`),
@@ -991,12 +1118,12 @@ async function openArtist(id) {
     const albums = a?.relationships?.albums?.data || [];
     const pls = a?.relationships?.playlists?.data || [];
     const banner = at.artwork ? art(at.artwork.url, 1200, 900) : '';
-    let html = `<div class="artistbanner"${banner ? ` style="background-image:url('${banner}')"` : ''}><div class="ab-shade"></div><div class="ab-name">${esc(at.name || '歌手')}</div><div class="ab-genre">${esc((at.genreNames || []).join(' · '))}</div></div>
-      <div class="colactions" style="max-width:340px;margin:14px auto 0"><button class="btn" id="artPlayTop">▶ 播放热门歌曲</button><button class="btn ghost2" id="artFav"></button></div>`;
-    if (top.data?.length) html += '<h2 class="sec">热门歌曲</h2><div class="rows" id="artTopRows">' + top.data.map((x, i) => rowHTML(x, i)).join('') + '</div>';
-    if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(x => cardHTML(x, 'album')).join('') + '</div>';
-    if (pls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + pls.map(x => cardHTML(x, 'playlist')).join('') + '</div>';
-    if (sim.data?.length) html += '<h2 class="sec">相似歌手</h2><div class="grid">' + sim.data.map(artistCardHTML).join('') + '</div>';
+    let html = `<div class="artistbanner"${banner ? ` style="background-image:url('${banner}')"` : ''}><div class="ab-shade"></div><div class="ab-name">${esc(at.name || t('artist_fallback'))}</div><div class="ab-genre">${esc((at.genreNames || []).join(' · '))}</div></div>
+      <div class="colactions" style="max-width:340px;margin:14px auto 0"><button class="btn" id="artPlayTop">${t('play_top_songs')}</button><button class="btn ghost2" id="artFav"></button></div>`;
+    if (top.data?.length) html += '<h2 class="sec">' + t('top_songs') + '</h2><div class="rows" id="artTopRows">' + top.data.map((x, i) => rowHTML(x, i)).join('') + '</div>';
+    if (albums.length) html += '<h2 class="sec">' + t('sec_albums') + '</h2><div class="grid">' + albums.map(x => cardHTML(x, 'album')).join('') + '</div>';
+    if (pls.length) html += '<h2 class="sec">' + t('sec_playlists') + '</h2><div class="grid">' + pls.map(x => cardHTML(x, 'playlist')).join('') + '</div>';
+    if (sim.data?.length) html += '<h2 class="sec">' + t('similar_artists') + '</h2><div class="grid">' + sim.data.map(artistCardHTML).join('') + '</div>';
     box.innerHTML = html;
     if (top.data?.length) {
       bindSongRows(box, top.data);
@@ -1013,7 +1140,7 @@ async function openArtist(id) {
     }
     bindCards(box);
     bindArtists(box);
-  } catch { box.innerHTML = '<div class="empty">歌手主页打开失败，检查网络后重试</div>'; }
+  } catch { box.innerHTML = '<div class="empty">' + t('artist_fail') + '</div>'; }
 }
 
 /* ---------- collection (playlist / album) detail ---------- */
@@ -1022,13 +1149,14 @@ function showOnlyPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === id));
   window.scrollTo(0, 0);
 }
-$('#colBack').addEventListener('click', () => showOnlyPage('page-' + colFrom));
+$('#colBack').addEventListener('click', () => { lastDetail = null; showOnlyPage('page-' + colFrom); });
 async function openCollection(kind, id) {
-  colFrom = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
-  if (colFrom === 'collection') colFrom = 'home';
+  const cpage = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
+  if (cpage !== 'collection') colFrom = cpage;
   showOnlyPage('page-collection');
   const box = $('#colContent');
-  box.innerHTML = '<div class="empty">加载中…</div>';
+  lastDetail = { type: 'collection', kind, id };
+  box.innerHTML = '<div class="empty">' + t('loading') + '</div>';
   colTracks = [];
   try {
     let head = null, tracks = [];
@@ -1053,16 +1181,16 @@ async function openCollection(kind, id) {
     const sub = a.artistName || a.curatorName || '';
     const headArtistId = kind === 'album' ? (head?.relationships?.artists?.data?.[0]?.id || null) : null;
     const subHTML = headArtistId ? `<span class="alink" id="colArtistLink">${esc(sub)}</span>` : esc(sub);
-    const meta = [a.releaseDate ? a.releaseDate.slice(0, 4) : '', a.genreNames?.[0] || '', tracks.length ? tracks.length + ' 首歌曲' : ''].filter(Boolean).join(' · ');
+    const meta = [a.releaseDate ? a.releaseDate.slice(0, 4) : '', a.genreNames?.[0] || '', tracks.length ? t('songs_count', tracks.length) : ''].filter(Boolean).join(' · ');
     const desc = a.description?.standard || a.description?.short || a.editorialNotes?.standard || '';
     box.innerHTML = `
-      <div class="colhero">${motionUrl ? `<video src="${motionUrl}" autoplay loop muted playsinline poster="${img}"></video>` : `<img src="${img}" alt="">`}<div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${subHTML}</div><div class="cm">${esc(meta)}</div></div></div>
+      <div class="colhero">${motionUrl ? `<video src="${motionUrl}" autoplay loop muted playsinline poster="${img}"></video>` : `<img src="${img}" alt="">`}<div><div class="cn">${esc(a.name || t('kind_playlist'))}</div><div class="ca">${subHTML}</div><div class="cm">${esc(meta)}</div></div></div>
       ${desc ? `<p style="font-size:13px;color:var(--ink2);line-height:1.65;margin-top:6px">${esc(desc)}</p>` : ''}
       <div class="colactions">
-        <button class="btn" id="colPlayAll">▶ 播放全部</button>
-        <button class="btn ghost2" id="colShuffle">随机播放</button>
+        <button class="btn" id="colPlayAll">${t('play_all')}</button>
+        <button class="btn ghost2" id="colShuffle">${t('shuffle_play')}</button>
       </div>
-      <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">这个歌单暂时没有歌曲</div>'}</div>`;
+      <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">' + t('empty_playlist') + '</div>'}</div>`;
     bindSongRows(box, tracks);
     const cal = $('#colArtistLink');
     if (cal) cal.addEventListener('click', () => openArtist(headArtistId));
@@ -1075,8 +1203,8 @@ async function openCollection(kind, id) {
     if (kind === 'lplaylist') {
       const acts = box.querySelector('.colactions');
       acts.style.flexWrap = 'wrap';
-      const eb = document.createElement('button'); eb.className = 'btn ghost2'; eb.textContent = '编辑名称';
-      const db = document.createElement('button'); db.className = 'btn ghost2'; db.textContent = '删除歌单'; db.style.color = '#e0243c';
+      const eb = document.createElement('button'); eb.className = 'btn ghost2'; eb.textContent = t('edit_name');
+      const db = document.createElement('button'); db.className = 'btn ghost2'; db.textContent = t('delete_playlist'); db.style.color = '#e0243c';
       acts.append(eb, db);
       eb.addEventListener('click', () => sheetRenamePlaylist(id, a.name || ''));
       db.addEventListener('click', () => sheetDeletePlaylist(id, a.name || ''));
@@ -1084,28 +1212,27 @@ async function openCollection(kind, id) {
         const wrap = document.createElement('div');
         wrap.className = 'swipe';
         const del = document.createElement('button');
-        del.className = 'swipe-del'; del.textContent = '删除';
+        del.className = 'swipe-del'; del.textContent = t('del');
         r.parentNode.insertBefore(wrap, r);
         wrap.append(del, r);
-        const t = tracks[ri];
-        const body = { data: [{ id: r.dataset.id, type: t?.type === 'songs' ? 'songs' : 'library-songs' }] };
+        const q = `?ids[library-songs]=${encodeURIComponent(r.dataset.id)}&mode=all`;
         makeSwipe(wrap, r, async () => {
           try {
-            await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body });
-            wrap.remove(); toast('已从歌单移除');
+            await api(`/v1/me/library/playlists/${id}/tracks${q}`, false, { method: 'DELETE' });
+            wrap.remove(); toast(t('removed_from'));
           } catch {
             try {
-              await api(`/v1/me/library/playlists/${id}/tracks`, false, { method: 'DELETE', body });
-              wrap.remove(); toast('已从歌单移除');
+              await api(`/v1/me/library/playlists/${id}/tracks${q}`, false, { method: 'DELETE' });
+              wrap.remove(); toast(t('removed_from'));
             } catch (e2) {
-              toast('移除失败：' + (e2.appleDetail || e2.appleCode || e2.message || '未知错误'));
+              toast(t('remove_fail_prefix') + (e2.appleDetail || e2.appleCode || e2.message || t('unknown_error')));
               closeSwipe(wrap);
             }
           }
         });
       });
     }
-  } catch { box.innerHTML = '<div class="empty">打开失败，检查网络后重试</div>'; }
+  } catch { box.innerHTML = '<div class="empty">' + t('open_fail') + '</div>'; }
 }
 
 /* ---------- search ---------- */
@@ -1113,7 +1240,7 @@ let searchTimer = null;
 $('#searchInput').addEventListener('input', e => {
   clearTimeout(searchTimer);
   const term = e.target.value.trim();
-  if (!term) { $('#searchContent').innerHTML = '<div class="empty">输入关键词开始搜索</div>'; return; }
+  if (!term) { $('#searchContent').innerHTML = '<div class="empty">' + t('search_empty') + '</div>'; return; }
   searchTimer = setTimeout(() => doSearch(term), 450);
 });
 function getSearchHist() { try { return JSON.parse(localStorage.getItem('aoi-search-entities') || '[]'); } catch { return []; } }
@@ -1132,8 +1259,8 @@ function renderSearchHist() {
   if (!box) return;
   const h = getSearchHist();
   if (!h.length) { box.innerHTML = ''; return; }
-  const kindLabel = { song: '歌曲', album: '专辑', playlist: '歌单', artist: '艺人' };
-  box.innerHTML = '<div class="sh-head"><span>最近搜索</span><button class="sh-clear" id="shClear">清除</button></div>' + h.map((e, i) => {
+  const kindLabel = { song: t('kind_song'), album: t('kind_album'), playlist: t('kind_playlist'), artist: t('kind_artist') };
+  box.innerHTML = '<div class="sh-head"><span>' + t('recent_searches') + '</span><button class="sh-clear" id="shClear">' + t('clear') + '</button></div>' + h.map((e, i) => {
     const face = e.kind === 'artist'
       ? (e.art ? `<img class="round" loading="lazy" src="${art(e.art, 92, 92)}" alt="">` : `<div class="init">${esc((e.name || '?').slice(0, 1))}</div>`)
       : `<img loading="lazy" src="${e.art ? art(e.art, 92, 92) : 'assets/icon-512.png'}" alt="">`;
@@ -1149,17 +1276,17 @@ function renderSearchHist() {
   $('#shClear').addEventListener('click', () => { localStorage.removeItem('aoi-search-entities'); renderSearchHist(); });
 }
 renderSearchHist();
-async function doSearch(term) {
-  $('#searchContent').innerHTML = '<div class="empty">搜索中…</div>';
+async function doSearch(term) { lastSearchTerm = term;
+  $('#searchContent').innerHTML = '<div class="empty">' + t('searching') + '</div>';
   try {
     const d = await api(`/v1/catalog/${sf}/search?term=${encodeURIComponent(term)}&types=songs,albums,artists,playlists&limit=25`);
     const songs = d.results.songs?.data || [], albums = d.results.albums?.data || [], artists = d.results.artists?.data || [], spls = d.results.playlists?.data || [];
     let html = '';
-    if (artists.length) html += '<h2 class="sec">歌手</h2><div class="grid">' + artists.map(artistCardHTML).join('') + '</div>';
-    if (songs.length) html += '<h2 class="sec">歌曲</h2><div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div>';
-    if (albums.length) html += '<h2 class="sec">专辑</h2><div class="grid">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
-    if (spls.length) html += '<h2 class="sec">歌单</h2><div class="grid">' + spls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
-    $('#searchContent').innerHTML = html || '<div class="empty">没找到相关内容</div>';
+    if (artists.length) html += '<h2 class="sec">' + t('sec_artists') + '</h2><div class="grid">' + artists.map(artistCardHTML).join('') + '</div>';
+    if (songs.length) html += '<h2 class="sec">' + t('sec_songs') + '</h2><div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div>';
+    if (albums.length) html += '<h2 class="sec">' + t('sec_albums') + '</h2><div class="grid">' + albums.map(a => cardHTML(a, 'album')).join('') + '</div>';
+    if (spls.length) html += '<h2 class="sec">' + t('sec_playlists') + '</h2><div class="grid">' + spls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
+    $('#searchContent').innerHTML = html || '<div class="empty">' + t('search_none') + '</div>';
     bindSongRows($('#searchContent'), songs);
     bindCards($('#searchContent'));
     bindArtists($('#searchContent'));
@@ -1171,7 +1298,7 @@ async function doSearch(term) {
       if (x) recordSearchEntity(c.dataset.kind, x);
     }));
     sc.querySelectorAll('.acard').forEach(c => c.addEventListener('click', () => { const x = artists.find(v => v.id === c.dataset.aid); if (x) recordSearchEntity('artist', x); }));
-  } catch { $('#searchContent').innerHTML = '<div class="empty">搜索失败，检查网络后重试</div>'; }
+  } catch { $('#searchContent').innerHTML = '<div class="empty">' + t('search_fail') + '</div>'; }
 }
 
 /* ---------- radio & recommendations ---------- */
@@ -1181,13 +1308,13 @@ function stationCardHTML(st) {
   const a = st.attributes || {};
   stationById[st.id] = st;
   const img = a.artwork ? `<img loading="lazy" src="${art(a.artwork.url, 320, 320)}" alt="">` : '<img src="assets/icon-512.png" alt="">';
-  return `<div class="card station" data-sid="${st.id}">${img}<div class="t">${esc(a.name || '电台')}</div><div class="a">电台 · 点播即播</div></div>`;
+  return `<div class="card station" data-sid="${st.id}">${img}<div class="t">${esc(a.name || t('nav_radio'))}</div><div class="a">${t('station_sub')}</div></div>`;
 }
 async function loadRadio() {
   if (radioLoaded && radioWasAuth === authorized) return;
   radioLoaded = true; radioWasAuth = authorized;
   const box = $('#radioContent');
-  box.innerHTML = '<div class="empty">加载推荐中…</div>';
+  box.innerHTML = '<div class="empty">' + t('rec_loading') + '</div>';
   try {
     let html = '';
     const stations = [];
@@ -1199,7 +1326,7 @@ async function loadRadio() {
         if (!contents.length && g.relationships?.contents?.href) {
           try { const cd = await api(g.relationships.contents.href); contents = cd.data || []; } catch {}
         }
-        const title = g.attributes?.title?.stringForDisplay || g.attributes?.reason?.stringForDisplay || '为你推荐';
+        const title = g.attributes?.title?.stringForDisplay || g.attributes?.reason?.stringForDisplay || t('for_you');
         const cards = [], rows = [];
         for (const it of contents) {
           if (it.type === 'stations') { stations.push(it); }
@@ -1213,37 +1340,37 @@ async function loadRadio() {
     } else {
       const d = await api(`/v1/catalog/${sf}/charts?types=playlists&limit=24`);
       const pls = d.results.playlists?.[0]?.data || [];
-      if (pls.length) html += '<h2 class="sec">推荐歌单</h2><div class="grid">' + pls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
+      if (pls.length) html += '<h2 class="sec">' + t('rec_playlists') + '</h2><div class="grid">' + pls.map(p => cardHTML(p, 'playlist')).join('') + '</div>';
       html += '<div class="empty" style="margin-top:26px">连接 Apple 账户后，这里会出现专属推荐和你的个人电台</div>';
     }
     if (stations.length) {
       const seen = new Set(); const uniq = stations.filter(st => !seen.has(st.id) && seen.add(st.id));
-      html += '<h2 class="sec">电台</h2><div class="grid">' + uniq.map(stationCardHTML).join('') + '</div>';
+      html += '<h2 class="sec">' + t('stations') + '</h2><div class="grid">' + uniq.map(stationCardHTML).join('') + '</div>';
     }
-    box.innerHTML = html || '<div class="empty">暂时没有推荐内容</div>';
+    box.innerHTML = html || '<div class="empty">' + t('rec_empty') + '</div>';
     bindCards(box);
     for (const [gid, rows] of rowGroups) { const el = document.getElementById(gid); if (el) bindSongRows(el, rows); }
     box.querySelectorAll('.card.station').forEach(c => c.addEventListener('click', () => playStation(stationById[c.dataset.sid])));
-  } catch (e) { console.error(e); box.innerHTML = '<div class="empty">推荐加载失败，检查网络后重试</div>'; radioLoaded = false; }
+  } catch (e) { console.error(e); box.innerHTML = '<div class="empty">' + t('rec_fail') + '</div>'; radioLoaded = false; }
 }
 async function playStation(st) {
   if (!st) return;
-  if (!authorized || !music) { toast('先在「设置」里连接 Apple 账户才能听电台'); return; }
+  if (!authorized || !music) { toast(t('radio_need')); return; }
   try {
     engine = 'musickit'; queue = []; qIndex = -1; wantPlay = true; lastPlayOp = Date.now();
     await music.setQueue({ station: st.id });
     await music.play();
-    toast('正在播放电台：' + (st.attributes?.name || ''));
+    toast(t('radio_playing') + (st.attributes?.name || ''));
     setTimeout(() => { syncFromMusicKit(); openNP(); }, 600);
-  } catch (e) { console.error(e); toast('电台播放失败，稍后再试'); }
+  } catch (e) { console.error(e); toast(t('radio_fail')); }
 }
 
 /* ---------- library ---------- */
 let libLoaded = false;
 async function loadLibrary() {
-  if (!authorized) { $('#libContent').innerHTML = '<div class="empty">还没连接 Apple 账户。<br>去「设置」里连接后，这里会出现你的歌单和资料库</div>'; return; }
+  if (!authorized) { $('#libContent').innerHTML = '<div class="empty">' + t('lib_signin') + '</div>'; return; }
   if (libLoaded) return; libLoaded = true;
-  $('#libContent').innerHTML = '<div class="empty">加载资料库中…</div>';
+  $('#libContent').innerHTML = '<div class="empty">' + t('lib_loading') + '</div>';
   try {
     const [pls, songs, larts] = await Promise.all([
       api('/v1/me/library/playlists?limit=50').catch(() => ({ data: [] })),
@@ -1251,11 +1378,11 @@ async function loadLibrary() {
       api('/v1/me/library/artists?limit=50').catch(() => ({ data: [] }))
     ]);
     let html = '';
-    html += '<div style="margin:2px 0 8px"><button class="btn" id="newPlBtn">＋ 新建歌单</button></div>';
-    if (pls.data?.length) html += '<h2 class="sec">我的歌单</h2><div class="grid">' + pls.data.map(p => cardHTML(p, 'lplaylist')).join('') + '</div>';
-    if (larts.data?.length) html += '<h2 class="sec">资料库歌手</h2><div class="grid">' + larts.data.map(artistCardHTML).join('') + '</div>';
-    if (songs.data?.length) html += '<h2 class="sec">资料库歌曲</h2><div class="rows">' + songs.data.map((s, i) => rowHTML(s, i)).join('') + '</div>';
-    $('#libContent').innerHTML = html || '<div class="empty">资料库是空的</div>';
+    html += '<div style="margin:2px 0 8px"><button class="btn" id="newPlBtn">' + t('lib_new') + '</button></div>';
+    if (pls.data?.length) html += '<h2 class="sec">' + t('my_playlists') + '</h2><div class="grid">' + pls.data.map(p => cardHTML(p, 'lplaylist')).join('') + '</div>';
+    if (larts.data?.length) html += '<h2 class="sec">' + t('lib_artists') + '</h2><div class="grid">' + larts.data.map(artistCardHTML).join('') + '</div>';
+    if (songs.data?.length) html += '<h2 class="sec">' + t('lib_songs') + '</h2><div class="rows">' + songs.data.map((s, i) => rowHTML(s, i)).join('') + '</div>';
+    $('#libContent').innerHTML = html || '<div class="empty">' + t('lib_empty') + '</div>';
     bindSongRows($('#libContent'), songs.data || []);
     const npb = $('#newPlBtn');
     if (npb) npb.addEventListener('click', () => sheetCreatePlaylist(null));
@@ -1264,10 +1391,10 @@ async function loadLibrary() {
       try {
         const d = await api(`/v1/me/library/artists/${c.dataset.aid}?include=catalog`);
         const cid = d.data?.[0]?.relationships?.catalog?.data?.[0]?.id;
-        if (cid) openArtist(cid); else toast('这位歌手的曲库主页暂时打不开');
-      } catch { toast('打开歌手主页失败'); }
+        if (cid) openArtist(cid); else toast(t('artist_lib_fail'));
+      } catch { toast(t('artist_open_failed')); }
     }));
-  } catch { $('#libContent').innerHTML = '<div class="empty">资料库加载失败</div>'; libLoaded = false; }
+  } catch { $('#libContent').innerHTML = '<div class="empty">' + t('lib_fail') + '</div>'; libLoaded = false; }
 }
 
 /* ================= player ================= */
@@ -1291,12 +1418,12 @@ async function startCurrent() {
       music.shuffleMode = shuffle ? 1 : 0;
       music.repeatMode = repeatMode;
       await music.play();
-    } catch (e) { console.error(e); toast('播放失败：该歌曲可能不在你的订阅区域'); }
+    } catch (e) { console.error(e); toast(t('play_fail_region')); }
   } else {
     engine = 'preview';
     const pv = cur.attributes?.previews?.[0]?.url;
     if (pv) { audio.src = pv; audio.play().catch(() => {}); }
-    else toast('这首歌没有试听片段');
+    else toast(t('no_preview'));
   }
   updateNP(); markPlayingRow(); tryMotion(cur); loadLyrics(cur);
 }
@@ -1343,7 +1470,7 @@ function renderHomeHistory(songs) {
   let list = songs || null;
   if (!list) { try { list = JSON.parse(localStorage.getItem('aoi-history') || '[]'); } catch { list = []; } }
   if (!list?.length) { box.innerHTML = ''; return; }
-  box.innerHTML = '<h2 class="sec">最近播放</h2><div class="rows">' + list.slice(0, 10).map((x, i) => rowHTML(x, i)).join('') + '</div>';
+  box.innerHTML = '<h2 class="sec">' + t('recent_played') + '</h2><div class="rows">' + list.slice(0, 10).map((x, i) => rowHTML(x, i)).join('') + '</div>';
   bindSongRows(box, list);
 }
 function updateMediaSession() {
@@ -1355,7 +1482,7 @@ function updateMediaSession() {
 function curTime() { return engine === 'musickit' ? (music.currentPlaybackTime || 0) : (audio.currentTime || 0); }
 function curDur() { return engine === 'musickit' ? (music.currentPlaybackDuration || 0) : (audio.duration || 30); }
 async function togglePlay() {
-  if (!cur) { toast('先选一首歌吧'); return; }
+  if (!cur) { toast(t('pick_song_first')); return; }
   lastPlayOp = Date.now();
   if (engine === 'musickit') { try { if (music.isPlaying) { wantPlay = false; await music.pause(); } else { wantPlay = true; await music.play(); } } catch {} }
   else { if (audio.paused) { wantPlay = true; audio.play().catch(() => {}); } else { wantPlay = false; audio.pause(); } }
@@ -1408,7 +1535,7 @@ function updateNP() {
   recordHistory(cur);
   if (engine === 'preview') preloadNextPreview();
   $('#npVideo').style.display = 'none'; $('#npArt').style.display = '';
-  $('#tMode').textContent = engine === 'musickit' ? '完整版' : '试听 30 秒';
+  $('#tMode').textContent = engine === 'musickit' ? t('mode_full') : t('mode_preview');
   syncPlayUI();
 }
 function syncPlayUI() {
@@ -1458,12 +1585,12 @@ $('#btnNext').addEventListener('click', () => next());
 $('#miniNext').addEventListener('click', e => { e.stopPropagation(); next(); });
 $('#btnPrev').addEventListener('click', prev);
 $('#miniPrev').addEventListener('click', e => { e.stopPropagation(); prev(); });
-$('#btnShuffle').addEventListener('click', e => { shuffle = !shuffle; e.currentTarget.classList.toggle('on', shuffle); if (music && engine === 'musickit') music.shuffleMode = shuffle ? 1 : 0; toast(shuffle ? '随机播放开' : '随机播放关'); });
-$('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) % 3; e.currentTarget.classList.toggle('on', repeatMode > 0); if (music && engine === 'musickit') music.repeatMode = repeatMode; toast(['循环关', '循环全部', '单曲循环'][repeatMode]); });
+$('#btnShuffle').addEventListener('click', e => { shuffle = !shuffle; e.currentTarget.classList.toggle('on', shuffle); if (music && engine === 'musickit') music.shuffleMode = shuffle ? 1 : 0; toast(shuffle ? t('shuffle_on') : t('shuffle_off')); });
+$('#btnRepeat').addEventListener('click', e => { repeatMode = (repeatMode + 1) % 3; e.currentTarget.classList.toggle('on', repeatMode > 0); if (music && engine === 'musickit') music.repeatMode = repeatMode; toast([t('repeat_off'), t('repeat_all'), t('repeat_one')][repeatMode]); });
 $('#mini').addEventListener('click', openNP);
 $('#np .grab').addEventListener('click', () => $('#np').classList.remove('open'));
 function openNP() { if (cur) $('#np').classList.add('open'); }
-$('#pillAir').addEventListener('click', () => toast('AirPlay 请用 iOS 控制中心选择设备'));
+$('#pillAir').addEventListener('click', () => toast(t('airplay_hint')));
 
 /* ---------- animated (motion) artwork ---------- */
 async function tryMotion(song) {
@@ -1525,18 +1652,18 @@ async function loadLyrics(song) {
     ];
     let d = null, lastErr = null;
     for (const fn of attempts) {
-      try { const r = await fn(); if (r.data?.[0]?.attributes?.ttml || r.data?.[0]?.attributes?.ttmlLocal) { d = r; break; } lastErr = lastErr || new Error('返回了空歌词'); }
+      try { const r = await fn(); if (r.data?.[0]?.attributes?.ttml || r.data?.[0]?.attributes?.ttmlLocal) { d = r; break; } lastErr = lastErr || new Error(t('empty_lyrics_ret')); }
       catch (e) { lastErr = e; }
     }
-    if (!d) throw lastErr || new Error('歌词接口无数据');
+    if (!d) throw lastErr || new Error(t('lyrics_no_data'));
     const ttml = d.data?.[0]?.attributes?.ttml || d.data?.[0]?.attributes?.ttmlLocal;
-    if (!ttml) { lastLyricNote = '苹果没有返回这首歌的歌词数据'; return; }
+    if (!ttml) { lastLyricNote = t('lyrics_none_note'); return; }
     const doc = new DOMParser().parseFromString(ttml, 'text/xml');
     const ps = [...doc.querySelectorAll('*')].filter(el => el.localName === 'p');
     lyricLines = ps.map(p => ({ t: parseTTMLTime(p.getAttribute('begin')), text: p.textContent.trim() })).filter(l => l.text);
-    if (!lyricLines.length) lastLyricNote = '歌词解析为空（TTML 无文本行）';
+    if (!lyricLines.length) lastLyricNote = t('lyrics_empty_note');
     $('#lyrics').innerHTML = lyricLines.map((l, i) => `<div class="ln" data-i="${i}">${esc(l.text)}</div>`).join('');
-  } catch (e) { lastLyricNote = '歌词接口出错：' + (e.message || e) + (e.appleDetail ? '（' + e.appleDetail + '）' : ''); }
+  } catch (e) { lastLyricNote = t('lyrics_err_prefix') + (e.message || e) + (e.appleDetail ? '（' + e.appleDetail + '）' : ''); }
 }
 function parseTTMLTime(s) {
   if (!s) return 0;
@@ -1570,8 +1697,8 @@ $('#pillLyrics').addEventListener('click', () => npView('lyrics'));
 $('#pillQueue').addEventListener('click', () => npView('queue'));
 function renderQueue() {
   const Q = $('#queueView');
-  if (!queue.length) { Q.innerHTML = '<div class="qh">播放队列</div><div style="color:rgba(255,255,255,.6);font-size:14px;padding:4px 2px">队列是空的</div>'; return; }
-  Q.innerHTML = '<div class="qh">播放队列 · 共 ' + queue.length + ' 首</div>' + queue.map((it, i) => {
+  if (!queue.length) { Q.innerHTML = '<div class="qh">' + t('queue_title') + '</div><div style="color:rgba(255,255,255,.6);font-size:14px;padding:4px 2px">' + t('queue_empty') + '</div>'; return; }
+  Q.innerHTML = '<div class="qh">t('queue_count', queue.length)</div>' + queue.map((it, i) => {
     const a = it.attributes || {};
     const img = a.artwork ? art(a.artwork.url, 92, 92) : 'assets/icon-512.png';
     return `<div class="qrow ${cur && it.id === cur.id ? 'cur' : ''}" data-qi="${i}"><img src="${img}" alt=""><div class="qt"><div class="qn">${esc(a.name || '—')}</div><div class="qa">${esc(a.artistName || '')}</div></div>${cur && it.id === cur.id ? '<span class="eq">♪♪</span>' : ''}</div>`;
@@ -1584,7 +1711,7 @@ async function jumpToQueue(idx) {
   if (engine === 'musickit' && music) {
     try { await music.changeToMediaAtIndex(idx); qIndex = idx; cur = queue[idx]; updateNP(); renderQueue(); return; } catch {}
     try { await music.setQueue({ songs: queue.map(x => x.id), startIndex: idx }); await music.play(); qIndex = idx; cur = queue[idx]; updateNP(); renderQueue(); return; } catch {}
-    toast('这首暂时切不过去'); return;
+    toast(t('jump_fail')); return;
   }
   qIndex = idx; startCurrent(); renderQueue();
 }
