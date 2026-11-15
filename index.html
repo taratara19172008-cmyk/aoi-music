@@ -126,6 +126,19 @@ h2.sec .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:6
   border:1px solid var(--glass-brd);border-radius:22px;box-shadow:var(--shadow);padding:20px;margin-top:16px;max-width:640px}
 .panel h3{font-size:16.5px;margin-bottom:6px}
 .picon{width:24px;height:24px;border-radius:7px;vertical-align:-6px;margin-right:8px;box-shadow:0 3px 8px rgba(20,10,50,.18)}
+.backbtn{display:inline-flex;align-items:center;gap:5px;padding:8px 15px 8px 11px;border-radius:999px;font-size:14px;font-weight:600;color:var(--ink);
+  background:var(--glassbtn);-webkit-backdrop-filter:blur(14px) saturate(190%);backdrop-filter:blur(14px) saturate(190%);
+  border:1px solid rgba(255,255,255,.6);box-shadow:var(--glassbtn-shadow);margin-bottom:16px}
+.backbtn:active{transform:scale(.95)}
+.colhero{display:flex;gap:16px;align-items:flex-end;margin-bottom:8px}
+.colhero img{width:132px;height:132px;border-radius:18px;object-fit:cover;box-shadow:0 16px 34px rgba(20,10,50,.28)}
+.colhero .cn{font-size:23px;font-weight:800;line-height:1.2}
+.colhero .ca{font-size:14.5px;color:var(--accent);font-weight:600;margin-top:4px}
+.colhero .cm{font-size:12.5px;color:var(--ink2);margin-top:5px;line-height:1.5}
+.colactions{display:flex;gap:10px;margin:14px 0 6px}
+.colactions .btn{flex:1;justify-content:center}
+.btn.ghost2{background:linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.16) 55%, rgba(255,255,255,.34));color:var(--accent);
+  border:1px solid rgba(255,255,255,.65);box-shadow:var(--glassbtn-shadow);text-shadow:none}
 #rail .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .panel p{font-size:13.5px;color:var(--ink2);line-height:1.65}
 .swatches{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:center}
@@ -273,6 +286,11 @@ input[type=color].custom{width:42px;height:42px;border:0;background:none;cursor:
     <h1 class="greet">资料库</h1>
     <p class="sub" id="libSub">你账户里的歌单和歌曲</p>
     <div id="libContent"></div>
+  </section>
+
+  <section class="page" id="page-collection">
+    <button class="backbtn" id="colBack"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M14.5 5L8 12l6.5 7" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</button>
+    <div id="colContent"><div class="empty">加载中…</div></div>
   </section>
 
   <section class="page" id="page-settings">
@@ -464,15 +482,60 @@ function bindSongRows(root, songs) {
   }));
 }
 function bindCards(root) {
-  root.querySelectorAll('.card').forEach(c => c.addEventListener('click', async () => {
-    const kind = c.dataset.kind, id = c.dataset.id;
-    try {
-      const d = await api(`/v1/catalog/${sf}/${kind === 'album' ? 'albums' : 'playlists'}/${id}?include=songs`);
-      const rel = d.data?.[0]?.relationships?.tracks?.data || d.data?.[0]?.relationships?.songs?.data || [];
-      const tracks = rel.filter(t => t.type === 'songs');
-      if (tracks.length) playSongs(tracks, 0); else toast('这个歌单暂时没有可播放的歌曲');
-    } catch { toast('打开失败，稍后再试'); }
-  }));
+  root.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection(c.dataset.kind, c.dataset.id)));
+}
+
+/* ---------- collection (playlist / album) detail ---------- */
+let colTracks = [], colFrom = 'home';
+function showOnlyPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === id));
+  window.scrollTo(0, 0);
+}
+$('#colBack').addEventListener('click', () => showOnlyPage('page-' + colFrom));
+async function openCollection(kind, id) {
+  colFrom = (document.querySelector('.page.on')?.id || 'page-home').replace('page-', '');
+  if (colFrom === 'collection') colFrom = 'home';
+  showOnlyPage('page-collection');
+  const box = $('#colContent');
+  box.innerHTML = '<div class="empty">加载中…</div>';
+  colTracks = [];
+  try {
+    let head = null, tracks = [];
+    if (kind === 'lplaylist') {
+      const [meta, td] = await Promise.all([
+        api(`/v1/me/library/playlists/${id}`).catch(() => null),
+        api(`/v1/me/library/playlists/${id}/tracks?limit=100`)
+      ]);
+      head = meta?.data?.[0] || null;
+      tracks = (td.data || []).filter(t => t.type === 'library-songs' || t.type === 'songs');
+    } else {
+      const d = await api(`/v1/catalog/${sf}/${kind === 'album' ? 'albums' : 'playlists'}/${id}?include=tracks`);
+      head = d.data?.[0] || null;
+      const rel = head?.relationships?.tracks?.data || head?.relationships?.songs?.data || [];
+      tracks = rel.filter(t => t.type === 'songs');
+    }
+    colTracks = tracks;
+    const a = head?.attributes || {};
+    const img = a.artwork ? art(a.artwork.url, 400, 400) : 'assets/icon-512.png';
+    const sub = a.artistName || a.curatorName || '';
+    const meta = [a.releaseDate ? a.releaseDate.slice(0, 4) : '', a.genreNames?.[0] || '', tracks.length ? tracks.length + ' 首歌曲' : ''].filter(Boolean).join(' · ');
+    const desc = a.description?.standard || a.description?.short || a.editorialNotes?.standard || '';
+    box.innerHTML = `
+      <div class="colhero"><img src="${img}" alt=""><div><div class="cn">${esc(a.name || '歌单')}</div><div class="ca">${esc(sub)}</div><div class="cm">${esc(meta)}</div></div></div>
+      ${desc ? `<p style="font-size:13px;color:var(--ink2);line-height:1.65;margin-top:6px">${esc(desc)}</p>` : ''}
+      <div class="colactions">
+        <button class="btn" id="colPlayAll">▶ 播放全部</button>
+        <button class="btn ghost2" id="colShuffle">随机播放</button>
+      </div>
+      <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">这个歌单暂时没有歌曲</div>'}</div>`;
+    bindSongRows(box, tracks);
+    $('#colPlayAll').addEventListener('click', () => { if (colTracks.length) playSongs(colTracks, 0); });
+    $('#colShuffle').addEventListener('click', () => {
+      if (!colTracks.length) return;
+      shuffle = true; $('#btnShuffle').classList.add('on');
+      playSongs(colTracks, Math.floor(Math.random() * colTracks.length));
+    });
+  } catch { box.innerHTML = '<div class="empty">打开失败，检查网络后重试</div>'; }
 }
 
 /* ---------- search ---------- */
@@ -513,13 +576,7 @@ async function loadLibrary() {
     if (songs.data?.length) html += '<h2 class="sec">资料库歌曲</h2><div class="rows">' + songs.data.map((s, i) => rowHTML(s, i)).join('') + '</div>';
     $('#libContent').innerHTML = html || '<div class="empty">资料库是空的</div>';
     bindSongRows($('#libContent'), songs.data || []);
-    $('#libContent').querySelectorAll('.card').forEach(c => c.addEventListener('click', async () => {
-      try {
-        const d = await api(`/v1/me/library/playlists/${c.dataset.id}/tracks?limit=100`);
-        const tracks = (d.data || []).filter(t => t.type === 'library-songs' || t.type === 'songs');
-        if (tracks.length) playSongs(tracks, 0); else toast('歌单是空的');
-      } catch { toast('打开歌单失败'); }
-    }));
+    $('#libContent').querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openCollection('lplaylist', c.dataset.id)));
   } catch { $('#libContent').innerHTML = '<div class="empty">资料库加载失败</div>'; libLoaded = false; }
 }
 
