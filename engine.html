@@ -92,6 +92,11 @@ window.AoiEngine = {
       try { await music.changeToMediaAtIndex(i | 0); return; } catch (e) {}
     }).catch(() => {});
   },
+  playStation(id) {
+    if (!music) return;
+    return op(async () => { await music.setQueue({ station: id }); await music.play(); })
+      .catch(e => post({ type: 'error', where: 'station', message: String((e && e.message) || e) }));
+  },
   seek(sec) { if (music) { try { music.seekToTime(Number(sec) || 0); } catch (e) {} } },
   setShuffle(b) { appShuffle = !!b; if (music) music.shuffleMode = appShuffle ? 1 : 0; },
   setRepeat(m) { appRepeat = m | 0; if (music) music.repeatMode = mkRepeat(appRepeat); },
