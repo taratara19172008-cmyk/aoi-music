@@ -14,9 +14,16 @@
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
 post({ type: 'boot' });
 const RELAY = (window.AOI_CONFIG && window.AOI_CONFIG.relayBase) || '';
-if ('serviceWorker' in navigator && RELAY) {
-  navigator.serviceWorker.register('sw.js?relay=' + encodeURIComponent(RELAY)).catch(() => {});
+let swDone = false;
+function registerSW() {
+  if (swDone) return; swDone = true;
+  if ('serviceWorker' in navigator && RELAY) {
+    navigator.serviceWorker.register('sw.js?relay=' + encodeURIComponent(RELAY))
+      .then(() => post({ type: 'log', message: 'sw registered' }))
+      .catch(e => post({ type: 'log', message: 'sw failed: ' + String((e && e.message) || e) }));
+  }
 }
+setTimeout(registerSW, 20000);
 let music = null;
 // serialized playback ops (same lesson as the web app: never let two ops collide)
 let opChain = Promise.resolve(), opBusy = 0;
@@ -55,6 +62,7 @@ let mkInitStarted = false;
 async function initMK() {
   if (mkInitStarted || !window.MusicKit) return;
   mkInitStarted = true;
+  post({ type: 'log', message: 'configure start' });
   try {
     await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' } });
     music = MusicKit.getInstance();
@@ -62,11 +70,17 @@ async function initMK() {
     music.addEventListener('nowPlayingItemDidChange', () => { post({ type: 'item', item: itemJSON() }); sendState(); });
     post({ type: 'ready' });
     sendAuth();
+    registerSW();
   } catch (e) { post({ type: 'error', where: 'configure', message: String((e && e.message) || e) }); }
 }
 document.addEventListener('musickitloaded', initMK);
 // the async script can execute before the listener above attaches (fast cache) — poll for the global as a fallback
-const mkPoll = setInterval(() => { if (music) { clearInterval(mkPoll); return; } if (window.MusicKit) initMK(); }, 500);
+let lastMkFlag = 'pending';
+const mkPoll = setInterval(() => {
+  if (window.__mkScript !== lastMkFlag) { lastMkFlag = window.__mkScript; post({ type: 'log', message: 'script=' + lastMkFlag }); }
+  if (music) { clearInterval(mkPoll); return; }
+  if (window.MusicKit) initMK();
+}, 500);
 
 setTimeout(() => { if (!music) post({ type: 'error', where: 'musickit', message: 'load timeout, script=' + window.__mkScript + ', global=' + (typeof window.MusicKit) }); }, 10000);
 
