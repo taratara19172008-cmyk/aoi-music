@@ -426,6 +426,20 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
 .langopt{flex:1;height:44px;border-radius:13px;border:none;font:inherit;font-size:15px;font-weight:700;color:var(--ink2);background:rgba(255,255,255,.35);box-shadow:var(--glassbtn-shadow);cursor:pointer}
 .langopt.on{background:var(--accent);color:#fff}
 #bgfx{width:100vw;height:100dvh}
+
+/* AI chat */
+#aiKeyHint{cursor:pointer}
+.ai-me{align-self:flex-end;max-width:82%;margin-left:auto;width:fit-content;padding:10px 14px;border-radius:18px 18px 4px 18px;background:color-mix(in srgb, var(--accent) 24%, transparent);border:1px solid rgba(255,255,255,.35);font-size:15px;line-height:1.45}
+.ai-status{color:var(--sub,#8e8e93);font-size:14px;padding:2px 4px}
+.ai-card .rows{margin-top:2px}
+.ai-save{margin-top:10px}
+#aiMsgs{display:flex;flex-direction:column;gap:16px}
+#aiBar{position:sticky;bottom:86px;display:flex;gap:10px;align-items:center;padding:10px 12px;margin-top:16px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);box-shadow:0 10px 30px rgba(30,30,80,.12);z-index:5}
+#aiBar input{flex:1;border:0;background:transparent;font-size:16px;outline:none;color:inherit;min-width:0}
+#aiSend{flex:0 0 auto;width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#aiThinking{color:var(--sub,#8e8e93);font-size:14px;padding:6px 4px}
+.dsrow{display:flex;gap:10px;align-items:center}
+.dsrow input{flex:1;padding:11px 13px;border-radius:12px;border:1px solid rgba(120,120,160,.25);background:rgba(255,255,255,.5);font-size:15px;outline:none;color:inherit;min-width:0}
 </style>
 </head>
 <body>
@@ -445,6 +459,7 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
   <button class="navbtn" data-page="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21" stroke-linecap="round"/></svg><span data-i18n="nav_search">搜索</span></button>
   <button class="navbtn" data-page="radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.8 18.2a9.4 9.4 0 0 1 0-12.4M18.2 5.8a9.4 9.4 0 0 1 0 12.4" stroke-linecap="round"/></svg><span data-i18n="nav_radio">电台</span></button>
   <button class="navbtn" data-page="library"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2.2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2.2" opacity=".5"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2.2"/></svg><span data-i18n="nav_library">资料库</span></button>
+  <button class="navbtn" data-page="ai"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9zM19 15.5l.8 2.2 2.2.8-2.2.8L19 21.5l-.8-2.2-2.2-.8 2.2-.8zM5 16.5l.6 1.7 1.7.6-1.7.6L5 21l-.6-1.6-1.7-.6 1.7-.6z"/></svg><span data-i18n="nav_ai">AI</span></button>
   <div class="sp"></div>
   <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke-linecap="round"/></svg><span data-i18n="nav_settings">设置</span></button>
 </nav>
@@ -482,6 +497,16 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
     <div id="colContent"><div class="empty" data-i18n="loading">加载中…</div></div>
   </section>
 
+  <section class="page" id="page-ai">
+    <h1 class="greet"><span data-i18n="ai_title">AI 推荐</span> <button class="btn ghost" id="aiClear" style="float:right;font-size:13px;padding:6px 12px" data-i18n="ai_clear">清空</button></h1>
+    <p class="sub" data-i18n="ai_sub">说想听什么，只回歌曲卡片，点开就能放</p>
+    <div style="height:14px"></div>
+    <div class="panel" id="aiKeyHint" style="display:none"><h3 data-i18n="ai_key">DeepSeek API 密钥</h3><p data-i18n="ai_need_key_long">还没有填密钥。点这里去设置里粘贴你的 DeepSeek 密钥，填一次就行，只保存在这台设备上。</p></div>
+    <div id="aiMsgs"></div>
+    <div id="aiThinking" style="display:none" data-i18n="ai_thinking">正在为你挑歌…</div>
+    <div id="aiBar"><input id="aiInput" type="text" data-i18n-ph="ai_ph" placeholder="想听点什么…" enterkeyhint="send"><button id="aiSend" aria-label="发送"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M12 19V6.8M6.2 11.6L12 5.8l5.8 5.8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </section>
+
   <section class="page" id="page-settings">
     <h1 class="greet" data-i18n="nav_settings">设置</h1>
     <div class="panel">
@@ -510,6 +535,12 @@ body.custombg #bgfx i{opacity:.20;z-index:1}
       <div style="height:12px"></div>
       <button class="btn" id="acctBtn" data-i18n="connect">连接 Apple 账户</button>
       <button class="btn ghost" id="signOutBtn" style="display:none" data-i18n="disconnect">断开连接</button>
+    </div>
+    <div class="panel">
+      <h3><svg class="picon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9zM19 15.5l.8 2.2 2.2.8-2.2.8L19 21.5l-.8-2.2-2.2-.8 2.2-.8z"/></svg><span data-i18n="ai_key">DeepSeek API 密钥</span></h3>
+      <p data-i18n="ai_key_note">AI 推荐用你自己的 DeepSeek 密钥，只保存在这台设备上，请求直接发给 DeepSeek，不经过任何中转。</p>
+      <div style="height:12px"></div>
+      <div class="dsrow"><input id="dsKey" type="password" autocomplete="off" autocapitalize="off" data-i18n-ph="ai_key_ph" placeholder="粘贴你的 DeepSeek 密钥"><button class="btn" id="dsSave" data-i18n="save">保存</button></div>
     </div>
     <div class="panel">
       <h3><svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 11.2V16"/><circle cx="12" cy="7.9" r="1.25" fill="currentColor" stroke="none"/></svg><span data-i18n="about">关于</span></h3>
@@ -624,7 +655,7 @@ let lang = 'zh';
 try { lang = localStorage.getItem('aoi-lang') || 'zh'; } catch {}
 const L = {
   zh: {
-    nav_home: '首页', nav_search: '搜索', nav_radio: '电台', nav_library: '资料库', nav_settings: '设置',
+    nav_home: '首页', nav_search: '搜索', nav_radio: '电台', nav_library: '资料库', nav_settings: '设置', nav_ai: 'AI', ai_title: 'AI 推荐', ai_sub: '说想听什么，只回歌曲卡片，点开就能放', ai_clear: '清空', ai_hint: '说说你想听什么，比如「适合深夜开车的歌」。这里只会出现能放的歌曲卡片。', ai_ph: '想听点什么…', ai_thinking: '正在为你挑歌…', ai_save_pl: '存为歌单', ai_key: 'DeepSeek API 密钥', ai_key_ph: '粘贴你的 DeepSeek 密钥', ai_key_note: 'AI 推荐用你自己的 DeepSeek 密钥，只保存在这台设备上，请求直接发给 DeepSeek，不经过任何中转。', ai_key_saved: '密钥已保存', ai_need_key: '先在设置里填入 DeepSeek 密钥', ai_need_key_long: '还没有填密钥。点这里去设置里粘贴你的 DeepSeek 密钥，填一次就行，只保存在这台设备上。', ai_fail: 'AI 暂时没回应，再试一次', ai_no_match: '这次没在曲库里找到合适的歌，换个说法试试',
     greet_late: '夜深了', greet_morning: '上午好', greet_noon: '中午好', greet_afternoon: '下午好', greet_evening: '晚上好',
     home_loading: '正在加载热门音乐…', home_sub: '为你精选 · 今日热门', home_fail: '加载失败，检查网络后刷新', mk_fail: 'MusicKit 初始化失败，稍后刷新重试',
     feat_playlists: '精选歌单', recent_played: '最近播放', top_songs: '热门歌曲', top_albums: '热门专辑',
@@ -660,7 +691,7 @@ const L = {
     airplay_hint: 'AirPlay 请用 iOS 控制中心选择设备', pick_song_first: '先选一首歌吧', play_fail_region: '播放失败：该歌曲可能不在你的订阅区域', no_preview: '这首歌没有试听片段', jump_fail: '这首暂时切不过去'
   },
   en: {
-    nav_home: 'Home', nav_search: 'Search', nav_radio: 'Radio', nav_library: 'Library', nav_settings: 'Settings',
+    nav_home: 'Home', nav_search: 'Search', nav_radio: 'Radio', nav_library: 'Library', nav_settings: 'Settings', nav_ai: 'AI', ai_title: 'AI Picks', ai_sub: 'Say what you feel like — you get playable song cards, nothing else', ai_clear: 'Clear', ai_hint: 'Tell me what you want to hear, e.g. "songs for a late-night drive". Only playable song cards will appear here.', ai_ph: 'What do you feel like…', ai_thinking: 'Picking songs for you…', ai_save_pl: 'Save as playlist', ai_key: 'DeepSeek API Key', ai_key_ph: 'Paste your DeepSeek key', ai_key_note: 'AI picks use your own DeepSeek key. It stays on this device and requests go straight to DeepSeek — no middleman.', ai_key_saved: 'Key saved', ai_need_key: 'Add your DeepSeek key in Settings first', ai_need_key_long: 'No key yet. Tap here to paste your DeepSeek key in Settings — once is enough, it stays on this device.', ai_fail: 'The AI did not answer — try again', ai_no_match: 'No matching songs in the catalog this time — try rephrasing',
     greet_late: 'Still up late', greet_morning: 'Good morning', greet_noon: 'Good afternoon', greet_afternoon: 'Good afternoon', greet_evening: 'Good evening',
     home_loading: 'Loading top music…', home_sub: 'Made for you · Trending today', home_fail: 'Failed to load. Check your connection and refresh.', mk_fail: 'MusicKit failed to initialize. Refresh and try again.',
     feat_playlists: 'Featured Playlists', recent_played: 'Recently Played', top_songs: 'Top Songs', top_albums: 'Top Albums',
@@ -743,6 +774,7 @@ document.querySelectorAll('#rail .navbtn').forEach(b => b.addEventListener('clic
   lastDetail = null;
   if (b.dataset.page === 'library') loadLibrary();
   if (b.dataset.page === 'radio') loadRadio();
+  if (b.dataset.page === 'ai') aiRender();
   window.scrollTo({ top: 0 });
 }));
 
@@ -1755,6 +1787,134 @@ async function jumpToQueue(idx) {
   }
   qIndex = idx; startCurrent(); renderQueue();
 }
+
+/* ---------- AI 推荐（DeepSeek）：只出歌卡片，不出文字 ---------- */
+const AI_SYS = [
+'You are the song picker inside AoiMusic, a personal Apple Music client.',
+'The user describes what they want to hear; you pick songs from the APPLE MUSIC catalog.',
+'Reply with ONLY a fenced json block in exactly this shape and NOTHING else - no greeting, no explanation, no prose of any kind:',
+'{"songs":[{"title":"...","artist":"..."}]} with 8 to 12 songs.',
+'Every song must really exist on Apple Music, under the performing artist\'s common name.',
+'The app verifies each pick against the Apple Music catalog and silently drops anything that does not match, so accuracy matters more than quantity.'
+].join('\n');
+let aiMsgs = [];
+try { aiMsgs = JSON.parse(localStorage.getItem('aoi-ai-chat') || '[]');} catch { aiMsgs = [];}
+let aiBusy = false;
+function aiKey() { try { return localStorage.getItem('aoi-ds-key') || '';} catch { return '';}}
+function aiNorm(s) { return String(s || '').toLowerCase().replace(/[\s\-–—_·•.,，。'"’‘"「」『』（）()\[\]&＆:：;；!！?？\/\\|｜~～`+＋=*#@<>《》]/g, '');}
+function aiParsePicks(content) {
+if (!content) return [];
+let start = content.indexOf('{"songs"');
+if (start < 0) start = content.indexOf('{');
+if (start < 0) return [];
+let depth = 0, end = -1;
+for (let i = start; i < content.length; i++) {
+if (content[i] === '{') depth++;
+else if (content[i] === '}') { depth--; if (depth === 0) { end = i; break;}}
+}
+if (end < 0) return [];
+try {
+const obj = JSON.parse(content.slice(start, end + 1));
+return Array.isArray(obj.songs)? obj.songs.filter(p => p && p.title): [];
+} catch { return [];}
+}
+async function aiChatCall(history) {
+const r = await fetch('https://api.deepseek.com/chat/completions', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiKey()},
+body: JSON.stringify({ model: 'deepseek-chat', temperature: 0.8, messages: [{ role: 'system', content: AI_SYS}].concat(history)})
+});
+if (!r.ok) throw new Error('DeepSeek ' + r.status);
+const j = await r.json();
+return aiParsePicks(j && j.choices && j.choices[0] && j.choices[0].message? j.choices[0].message.content: '');
+}
+async function aiResolve(picks) {
+const out = [], seen = new Set();
+for (const p of picks) {
+if (out.length >= 12) break;
+try {
+const term = ((p.artist || '') + ' ' + (p.title || '')).trim();
+if (!term) continue;
+const d = await api('/v1/catalog/' + sf + '/search?term=' + encodeURIComponent(term) + '&types=songs&limit=8');
+const cands = (d.results && d.results.songs && d.results.songs.data) || [];
+const nt = aiNorm(p.title), na = aiNorm(p.artist);
+let hit = cands.find(c => aiNorm(c.attributes && c.attributes.name) === nt && (!na || aiNorm(c.attributes && c.attributes.artistName) === na));
+if (!hit) hit = cands.find(c => aiNorm(c.attributes && c.attributes.name) === nt);
+if (hit &&!seen.has(hit.id)) { seen.add(hit.id); out.push(hit);}
+} catch {}
+}
+return out;
+}
+function aiPersist() { try { localStorage.setItem('aoi-ai-chat', JSON.stringify(aiMsgs.slice(-40)));} catch {}}
+function aiRefreshHint() { const h = $('#aiKeyHint'); if (h) h.style.display = aiKey()? 'none': '';}
+function aiRender() {
+const box = $('#aiMsgs');
+if (!box) return;
+aiRefreshHint();
+if (!aiMsgs.length) { box.innerHTML = '<div class="empty">' + t('ai_hint') + '</div>'; return;}
+box.innerHTML = aiMsgs.map((m, mi) => {
+if (m.role === 'user') return '<div class="ai-me">' + esc(m.text) + '</div>';
+if (!m.songs ||!m.songs.length) return '<div class="ai-status">' + esc(m.text || '') + '</div>';
+return '<div class="ai-card"><div class="rows">' + m.songs.map((s, i) => rowHTML(s, i)).join('') + '</div><button class="btn ghost ai-save" data-mi="' + mi + '">' + t('ai_save_pl') + '</button></div>';
+}).join('');
+aiMsgs.forEach((m, mi) => { if (m.role === 'ai' && m.songs && m.songs.length) { const el = box.children[mi]; if (el) bindSongRows(el, m.songs);}});
+box.querySelectorAll('.ai-save').forEach(b => b.addEventListener('click', () => { const m = aiMsgs[+b.dataset.mi]; if (m && m.songs) aiSaveSheet(m.songs);}));
+}
+function aiSaveSheet(songs) {
+openSheet('<div class="sheettitle">' + t('ai_save_pl') + '</div><input id="sheetInput" class="sheetinput" placeholder="' + t('playlist_name_ph') + '" maxlength="60"><div class="sheetbtns"><button class="btn ghost2" id="sheetCancel">' + t('cancel') + '</button><button class="btn" id="sheetOk">' + t('create') + '</button></div>');
+const inp = $('#sheetInput'); setTimeout(() => inp.focus(), 60);
+$('#sheetCancel').addEventListener('click', closeSheet);
+$('#sheetOk').addEventListener('click', async () => {
+const name = inp.value.trim();
+if (!name) return toast(t('name_first'));
+try {
+const body = { attributes: { name}, relationships: { tracks: { data: songs.map(s => ({ id: s.id, type: 'songs'}))}}};
+await api('/v1/me/library/playlists', false, { method: 'POST', body});
+closeSheet(); libLoaded = false; toast(t('created'));
+} catch { toast(t('create_fail'));}
+});
+}
+async function aiSend() {
+const inp = $('#aiInput');
+const text = (inp.value || '').trim();
+if (!text || aiBusy) return;
+if (!aiKey()) { toast(t('ai_need_key')); document.querySelector('[data-page="settings"]')?.click(); return;}
+inp.value = '';
+aiMsgs.push({ role: 'user', text, songs: []});
+aiPersist(); aiRender();
+window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth'});
+aiBusy = true;
+const th = $('#aiThinking'); if (th) th.style.display = '';
+const history = aiMsgs.slice(-9, -1).map(m => {
+if (m.role === 'user') return { role: 'user', content: m.text};
+const list = (m.songs || []).map(s => (s.attributes? s.attributes.name: '') + ' — ' + (s.attributes? s.attributes.artistName: '')).join(', ');
+return { role: 'assistant', content: list? 'Picked: ' + list: (m.text || '')};
+});
+history.push({ role: 'user', content: text});
+try {
+const picks = await aiChatCall(history);
+const songs = await aiResolve(picks);
+aiMsgs.push({ role: 'ai', text: songs.length? '': t('ai_no_match'), songs});
+} catch { aiMsgs.push({ role: 'ai', text: t('ai_fail'), songs: []});}
+aiBusy = false;
+const th2 = $('#aiThinking'); if (th2) th2.style.display = 'none';
+aiPersist(); aiRender();
+window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth'});
+}
+$('#aiSend')?.addEventListener('click', aiSend);
+$('#aiInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); aiSend();}});
+$('#aiKeyHint')?.addEventListener('click', () => document.querySelector('[data-page="settings"]')?.click());
+$('#aiClear')?.addEventListener('click', () => { aiMsgs = []; aiPersist(); aiRender();});
+(function () {
+const inp = $('#dsKey');
+if (inp) { try { inp.value = localStorage.getItem('aoi-ds-key') || '';} catch {}}
+$('#dsSave')?.addEventListener('click', () => {
+try { localStorage.setItem('aoi-ds-key', ($('#dsKey').value || '').trim());} catch {}
+toast(t('ai_key_saved')); aiRefreshHint();
+});
+})();
+aiRender();
+
 </script>
 </body>
 </html>
