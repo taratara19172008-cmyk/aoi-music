@@ -655,7 +655,7 @@ let lang = 'zh';
 try { lang = localStorage.getItem('aoi-lang') || 'zh'; } catch {}
 const L = {
   zh: {
-    nav_home: '首页', nav_search: '搜索', nav_radio: '电台', nav_library: '资料库', nav_settings: '设置', nav_ai: 'AI', ai_title: 'AI 推荐', ai_sub: '说想听什么，只回歌曲卡片，点开就能放', ai_clear: '清空', ai_hint: '说说你想听什么，比如「适合深夜开车的歌」。这里只会出现能放的歌曲卡片。', ai_ph: '想听点什么…', ai_thinking: '正在为你挑歌…', ai_save_pl: '存为歌单', ai_key: 'DeepSeek API 密钥', ai_key_ph: '粘贴你的 DeepSeek 密钥', ai_key_note: 'AI 推荐用你自己的 DeepSeek 密钥，只保存在这台设备上，请求直接发给 DeepSeek，不经过任何中转。', ai_key_saved: '密钥已保存', ai_need_key: '先在设置里填入 DeepSeek 密钥', ai_need_key_long: '还没有填密钥。点这里去设置里粘贴你的 DeepSeek 密钥，填一次就行，只保存在这台设备上。', ai_fail: 'AI 暂时没回应，再试一次', ai_no_match: '这次没在曲库里找到合适的歌，换个说法试试',
+    nav_home: '首页', nav_search: '搜索', nav_radio: '电台', nav_library: '资料库', nav_settings: '设置', nav_ai: 'AI', ai_title: 'AI 推荐', ai_sub: '说想听什么，只回歌曲卡片，点开就能放', ai_clear: '清空', ai_hint: '说说你想听什么，比如「适合深夜开车的歌」。这里只会出现能放的歌曲卡片。', ai_ph: '想听点什么…', ai_thinking: '正在为你挑歌…', ai_save_pl: '存为歌单', ai_key: 'DeepSeek API 密钥', ai_key_ph: '粘贴你的 DeepSeek 密钥', ai_key_note: 'AI 推荐用你自己的 DeepSeek 密钥，只保存在这台设备上，请求直接发给 DeepSeek，不经过任何中转。', ai_key_saved: '密钥已保存', ai_need_key: '先在设置里填入 DeepSeek 密钥', ai_need_key_long: '还没有填密钥。点这里去设置里粘贴你的 DeepSeek 密钥，填一次就行，只保存在这台设备上。', ai_fail: 'AI 暂时没回应，再试一次', ai_no_match: '这次没在曲库里找到合适的歌，换个说法试试', ai_rec: 'AI 推荐', ai_more: '换一批',
     greet_late: '夜深了', greet_morning: '上午好', greet_noon: '中午好', greet_afternoon: '下午好', greet_evening: '晚上好',
     home_loading: '正在加载热门音乐…', home_sub: '为你精选 · 今日热门', home_fail: '加载失败，检查网络后刷新', mk_fail: 'MusicKit 初始化失败，稍后刷新重试',
     feat_playlists: '精选歌单', recent_played: '最近播放', top_songs: '热门歌曲', top_albums: '热门专辑',
@@ -691,7 +691,7 @@ const L = {
     airplay_hint: 'AirPlay 请用 iOS 控制中心选择设备', pick_song_first: '先选一首歌吧', play_fail_region: '播放失败：该歌曲可能不在你的订阅区域', no_preview: '这首歌没有试听片段', jump_fail: '这首暂时切不过去'
   },
   en: {
-    nav_home: 'Home', nav_search: 'Search', nav_radio: 'Radio', nav_library: 'Library', nav_settings: 'Settings', nav_ai: 'AI', ai_title: 'AI Picks', ai_sub: 'Say what you feel like — you get playable song cards, nothing else', ai_clear: 'Clear', ai_hint: 'Tell me what you want to hear, e.g. "songs for a late-night drive". Only playable song cards will appear here.', ai_ph: 'What do you feel like…', ai_thinking: 'Picking songs for you…', ai_save_pl: 'Save as playlist', ai_key: 'DeepSeek API Key', ai_key_ph: 'Paste your DeepSeek key', ai_key_note: 'AI picks use your own DeepSeek key. It stays on this device and requests go straight to DeepSeek — no middleman.', ai_key_saved: 'Key saved', ai_need_key: 'Add your DeepSeek key in Settings first', ai_need_key_long: 'No key yet. Tap here to paste your DeepSeek key in Settings — once is enough, it stays on this device.', ai_fail: 'The AI did not answer — try again', ai_no_match: 'No matching songs in the catalog this time — try rephrasing',
+    nav_home: 'Home', nav_search: 'Search', nav_radio: 'Radio', nav_library: 'Library', nav_settings: 'Settings', nav_ai: 'AI', ai_title: 'AI Picks', ai_sub: 'Say what you feel like — you get playable song cards, nothing else', ai_clear: 'Clear', ai_hint: 'Tell me what you want to hear, e.g. "songs for a late-night drive". Only playable song cards will appear here.', ai_ph: 'What do you feel like…', ai_thinking: 'Picking songs for you…', ai_save_pl: 'Save as playlist', ai_key: 'DeepSeek API Key', ai_key_ph: 'Paste your DeepSeek key', ai_key_note: 'AI picks use your own DeepSeek key. It stays on this device and requests go straight to DeepSeek — no middleman.', ai_key_saved: 'Key saved', ai_need_key: 'Add your DeepSeek key in Settings first', ai_need_key_long: 'No key yet. Tap here to paste your DeepSeek key in Settings — once is enough, it stays on this device.', ai_fail: 'The AI did not answer — try again', ai_no_match: 'No matching songs in the catalog this time — try rephrasing', ai_rec: 'AI Picks', ai_more: 'More picks',
     greet_late: 'Still up late', greet_morning: 'Good morning', greet_noon: 'Good afternoon', greet_afternoon: 'Good afternoon', greet_evening: 'Good evening',
     home_loading: 'Loading top music…', home_sub: 'Made for you · Trending today', home_fail: 'Failed to load. Check your connection and refresh.', mk_fail: 'MusicKit failed to initialize. Refresh and try again.',
     feat_playlists: 'Featured Playlists', recent_played: 'Recently Played', top_songs: 'Top Songs', top_albums: 'Top Albums',
@@ -1228,8 +1228,10 @@ async function openCollection(kind, id) {
         <button class="btn" id="colPlayAll">${t('play_all')}</button>
         <button class="btn ghost2" id="colShuffle">${t('shuffle_play')}</button>
       </div>
-      <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">' + t('empty_playlist') + '</div>'}</div>`;
+      <div class="rows">${tracks.map((t, i) => rowHTML(t, i)).join('') || '<div class="empty">' + t('empty_playlist') + '</div>'}</div>
+      <div id="colAiRec"></div>`;
     bindSongRows(box, tracks);
+    initColAiRec(kind, id, tracks, a.name || '');
     const cal = $('#colArtistLink');
     if (cal) cal.addEventListener('click', () => openArtist(headArtistId));
     $('#colPlayAll').addEventListener('click', () => { if (colTracks.length) playSongs(colTracks, 0); });
@@ -1818,11 +1820,13 @@ const obj = JSON.parse(content.slice(start, end + 1));
 return Array.isArray(obj.songs)? obj.songs.filter(p => p && p.title): [];
 } catch { return [];}
 }
-async function aiChatCall(history) {
+async function aiChatCall(history, withProfile) {
+const msgs = [{ role: 'system', content: AI_SYS }];
+if (withProfile) { const p = await aiProfile(); if (p) msgs.push({ role: 'system', content: p }); }
 const r = await fetch('https://api.deepseek.com/chat/completions', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiKey()},
-body: JSON.stringify({ model: 'deepseek-chat', temperature: 0.8, messages: [{ role: 'system', content: AI_SYS}].concat(history)})
+body: JSON.stringify({ model: 'deepseek-chat', temperature: 0.8, messages: msgs.concat(history)})
 });
 if (!r.ok) throw new Error('DeepSeek ' + r.status);
 const j = await r.json();
@@ -1844,6 +1848,70 @@ if (hit &&!seen.has(hit.id)) { seen.add(hit.id); out.push(hit);}
 } catch {}
 }
 return out;
+}
+/* ---------- AI 口味档案：最近播放 + 收藏 + 歌单（仅登录后，附在请求里） ---------- */
+let aiProfileCache = null, aiProfileAt = 0;
+async function aiProfile() {
+  if (!authorized) return '';
+  if (aiProfileCache !== null && Date.now() - aiProfileAt < 600000) return aiProfileCache;
+  const lines = [];
+  const fmt = s => ((s.attributes && s.attributes.name) || '') + ' — ' + ((s.attributes && s.attributes.artistName) || '');
+  try {
+    const d = await api('/v1/me/recent/played/tracks?limit=15');
+    const items = (d.data || []).filter(x => x.attributes && x.attributes.name);
+    if (items.length) lines.push('Recently played: ' + items.slice(0, 15).map(fmt).join('; '));
+  } catch {}
+  try {
+    const r = await api('/v1/me/ratings/songs?limit=40');
+    const ids = (r.data || []).map(x => x.id).filter(Boolean).slice(0, 40);
+    if (ids.length) {
+      const d = await api('/v1/catalog/' + sf + '/songs?ids=' + ids.join(','));
+      const items = (d.data || []).filter(x => x.attributes && x.attributes.name);
+      if (items.length) lines.push('Songs they marked as loved (favorites): ' + items.slice(0, 30).map(fmt).join('; '));
+    }
+  } catch {}
+  try {
+    const d = await api('/v1/me/library/playlists?limit=30');
+    const names = (d.data || []).map(x => x.attributes && x.attributes.name).filter(Boolean);
+    if (names.length) lines.push('Their playlists: ' + names.slice(0, 15).join(', '));
+  } catch {}
+  aiProfileCache = lines.length ? 'About the user, from their own Apple Music account. Use it to personalize your picks and match their taste. When they ask for something new, avoid songs already listed here.\n' + lines.join('\n') : '';
+  aiProfileAt = Date.now();
+  return aiProfileCache;
+}
+
+/* ---------- 歌单页 AI 推荐栏 ---------- */
+async function initColAiRec(kind, id, tracks, plName) {
+  const host = document.getElementById('colAiRec');
+  if (!host) return;
+  if (kind !== 'playlist' && kind !== 'lplaylist') { host.innerHTML = ''; return; }
+  host.innerHTML = '<h2 class="sec">' + t('ai_rec') + '</h2><div class="airec-body"></div>';
+  const body = host.querySelector('.airec-body');
+  if (!aiKey()) { body.innerHTML = '<div class="ai-status">' + t('ai_need_key') + '</div>'; return; }
+  const cacheKey = 'aoi-ai-rec-' + id;
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch {}
+  if (cached && cached.length) { renderColAiRec(body, cached, id, tracks, plName, cacheKey); return; }
+  await fetchColAiRec(body, id, tracks, plName, cacheKey, []);
+}
+async function fetchColAiRec(body, id, tracks, plName, cacheKey, excludeIds) {
+  body.innerHTML = '<div class="ai-status">' + t('ai_thinking') + '</div>';
+  try {
+    const seed = tracks.slice(0, 15).map(s => ((s.attributes && s.attributes.name) || '') + ' — ' + ((s.attributes && s.attributes.artistName) || '')).join('; ');
+    const msg = 'Here is an existing playlist' + (plName ? ' called "' + plName + '"' : '') + ':\n' + seed + '\nRecommend 10 more songs in the same spirit that are NOT already in this playlist. Same JSON-only reply as always.';
+    const picks = await aiChatCall([{ role: 'user', content: msg }]);
+    let songs = await aiResolve(picks);
+    const seedIds = new Set(tracks.map(s => s.id));
+    songs = songs.filter(s => !seedIds.has(s.id) && !excludeIds.includes(s.id));
+    try { localStorage.setItem(cacheKey, JSON.stringify(songs)); } catch {}
+    renderColAiRec(body, songs, id, tracks, plName, cacheKey);
+  } catch { body.innerHTML = '<div class="ai-status">' + t('ai_fail') + '</div>'; }
+}
+function renderColAiRec(body, songs, id, tracks, plName, cacheKey) {
+  if (!songs.length) { body.innerHTML = '<div class="ai-status">' + t('ai_no_match') + '</div>'; return; }
+  body.innerHTML = '<div class="rows">' + songs.map((s, i) => rowHTML(s, i)).join('') + '</div><button class="btn ghost ai-more">' + t('ai_more') + '</button>';
+  bindSongRows(body, songs);
+  body.querySelector('.ai-more').addEventListener('click', () => fetchColAiRec(body, id, tracks, plName, cacheKey, songs.map(s => s.id)));
 }
 function aiPersist() { try { localStorage.setItem('aoi-ai-chat', JSON.stringify(aiMsgs.slice(-40)));} catch {}}
 function aiRefreshHint() { const h = $('#aiKeyHint'); if (h) h.style.display = aiKey()? 'none': '';}
@@ -1892,7 +1960,7 @@ return { role: 'assistant', content: list? 'Picked: ' + list: (m.text || '')};
 });
 history.push({ role: 'user', content: text});
 try {
-const picks = await aiChatCall(history);
+const picks = await aiChatCall(history, true);
 const songs = await aiResolve(picks);
 aiMsgs.push({ role: 'ai', text: songs.length? '': t('ai_no_match'), songs});
 } catch { aiMsgs.push({ role: 'ai', text: t('ai_fail'), songs: []});}
