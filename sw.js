@@ -10,6 +10,7 @@ self.addEventListener('fetch', e => {
   let u;
   try { u = new URL(e.request.url); } catch { return; }
   if (!/(^|\.)music\.apple\.com$/.test(u.hostname)) return;
+  if (u.hostname === 'js-cdn.music.apple.com') return; // MusicKit script: public static file, load directly
   if (e.request.url.startsWith(RELAY)) return;
 
   const target = RELAY + '?target=' + encodeURIComponent(e.request.url);
