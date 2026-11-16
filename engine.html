@@ -66,6 +66,7 @@ async function initMK() {
   try {
     await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' } });
     music = MusicKit.getInstance();
+    window.__aoiHasMusic = true;
     music.addEventListener('playbackStateDidChange', sendState);
     music.addEventListener('nowPlayingItemDidChange', () => { post({ type: 'item', item: itemJSON() }); sendState(); });
     post({ type: 'ready' });
