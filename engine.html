@@ -11,6 +11,7 @@
 <script>
 'use strict';
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
+post({ type: 'boot' });
 const RELAY = (window.AOI_CONFIG && window.AOI_CONFIG.relayBase) || '';
 if ('serviceWorker' in navigator && RELAY) {
   navigator.serviceWorker.register('sw.js?relay=' + encodeURIComponent(RELAY)).catch(() => {});
@@ -59,6 +60,8 @@ document.addEventListener('musickitloaded', async () => {
     sendAuth();
   } catch (e) { post({ type: 'error', where: 'configure', message: String((e && e.message) || e) }); }
 });
+
+setTimeout(() => { if (!music) post({ type: 'error', where: 'musickit', message: 'load timeout (script blocked or failed)' }); }, 8000);
 
 window.AoiEngine = {
   async authorize() {
