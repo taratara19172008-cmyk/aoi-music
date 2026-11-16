@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AoiEngine</title>
 <script src="config.js?v=4"></script>
-<script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js" async></script>
+<script>window.__mkScript = 'pending';</script>
+<script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js" async onload="window.__mkScript='loaded'" onerror="window.__mkScript='error'"></script>
 </head>
 <body>
 <script>
@@ -50,7 +51,10 @@ setInterval(() => {
   post({ type: 'progress', t: music.currentPlaybackTime || 0, d: music.currentPlaybackDuration || 0, isPlaying: !!music.isPlaying });
 }, 500);
 
-document.addEventListener('musickitloaded', async () => {
+let mkInitStarted = false;
+async function initMK() {
+  if (mkInitStarted || !window.MusicKit) return;
+  mkInitStarted = true;
   try {
     await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' } });
     music = MusicKit.getInstance();
@@ -59,9 +63,12 @@ document.addEventListener('musickitloaded', async () => {
     post({ type: 'ready' });
     sendAuth();
   } catch (e) { post({ type: 'error', where: 'configure', message: String((e && e.message) || e) }); }
-});
+}
+document.addEventListener('musickitloaded', initMK);
+// the async script can execute before the listener above attaches (fast cache) — poll for the global as a fallback
+const mkPoll = setInterval(() => { if (music) { clearInterval(mkPoll); return; } if (window.MusicKit) initMK(); }, 500);
 
-setTimeout(() => { if (!music) post({ type: 'error', where: 'musickit', message: 'load timeout (script blocked or failed)' }); }, 8000);
+setTimeout(() => { if (!music) post({ type: 'error', where: 'musickit', message: 'load timeout, script=' + window.__mkScript + ', global=' + (typeof window.MusicKit) }); }, 10000);
 
 window.AoiEngine = {
   async authorize() {
