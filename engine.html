@@ -62,7 +62,7 @@ document.addEventListener('musickitloaded', async () => {
 
 window.AoiEngine = {
   async authorize() {
-    if (!music) return;
+    if (!music) { post({ type: 'error', where: 'authorize', message: 'engine not ready' }); return; }
     try { await music.authorize(); } catch (e) { post({ type: 'error', where: 'authorize', message: String((e && e.message) || e) }); }
     sendAuth();
   },
