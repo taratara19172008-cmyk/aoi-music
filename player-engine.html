@@ -20,7 +20,7 @@ window.AOI_CONFIG = { developerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZ
 // from the bundled login engine (AoiEngine.setUserToken), and MusicKit
 // treats the instance as authorized. Playback core identical to the
 // bundled engine 109.2 (serial ops, jump-first, drop-and-retry).
-window.ENGINE_VERSION = '110.5';
+window.ENGINE_VERSION = '110.6';
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
 post({ type: 'boot', version: window.ENGINE_VERSION });
 // v110.5: THE FIX. The 110.4 network tap proved two things on device:
@@ -207,8 +207,14 @@ if (RELAY_BASE && 'serviceWorker' in navigator) {
 let mkInitStarted = false;
 let injectedToken = '';
 let accountStorefront = '';
+// v110.6: initMK waits for the injected token (or a timeout) so the
+// account storefront can be resolved BEFORE MusicKit.configure - see
+// the configure call below for why the order matters.
+let tokenWaitExpired = false;
+setTimeout(() => { tokenWaitExpired = true; }, (window.__aoiTokenWaitMs != null ? window.__aoiTokenWaitMs : 8000));
 async function initMK() {
   if (mkInitStarted || !window.MusicKit) return;
+  if (!injectedToken && !tokenWaitExpired) return; // v110.6: wait for the token so configure can carry the storefront
   mkInitStarted = true;
   // v110.3: also drop any IndexedDB databases (MusicKit keeps queue
   // state there too). Raced against a timeout so init can never hang.
@@ -221,7 +227,19 @@ async function initMK() {
   } catch (e) {}
   post({ type: 'log', message: 'configure start' });
   try {
-    await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' } });
+    // v110.6: the 110.5 log proved MusicKit resolves the queue against
+    // the storefront its API layer captured at CONFIGURE time ('us',
+    // from the developer token) - poking music.storefrontId afterwards
+    // only changes a shadow property the API layer never reads, and
+    // US-catalog results carry no playable assets for a CN subscription
+    // (queue built empty -> CONTENT_EQUIVALENT). The authorize() flow
+    // avoids this because MusicKit fetches the storefront itself as
+    // part of session setup. With an injected token the equivalent is
+    // to resolve the storefront FIRST and hand it to configure.
+    let cfgSF = '';
+    if (injectedToken) { cfgSF = await fetchAccountStorefront(); if (cfgSF) accountStorefront = cfgSF; }
+    if (cfgSF) post({ type: 'log', message: 'configure with storefront ' + cfgSF });
+    await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' }, ...(cfgSF ? { storefrontId: cfgSF } : {}) });
     music = MusicKit.getInstance();
     window.__aoiHasMusic = true;
     if (injectedToken) { try { music.musicUserToken = injectedToken; } catch (e) {} await applySessionTail(); }
@@ -257,6 +275,21 @@ function parseUnresolved(e) {
   return m[1].split(',').map(s => s.trim()).filter(Boolean);
 }
 
+async function fetchAccountStorefront() {
+  // Relay fetch of the account's home storefront using the injected
+  // token. Works before configure (needs only the token), which is
+  // exactly when 110.6 needs it.
+  try {
+    if (!injectedToken || typeof fetch !== 'function' || !RELAY_BASE) return '';
+    const url = 'https://api.music.apple.com/v1/me/storefront';
+    const r = await fetch(RELAY_BASE + '?target=' + encodeURIComponent(url), {
+      headers: { 'Authorization': 'Bearer ' + window.AOI_CONFIG.developerToken, 'Music-User-Token': injectedToken }
+    });
+    const j = await r.json();
+    return (j && j.data && j.data[0] && j.data[0].id) || '';
+  } catch (e) { return ''; }
+}
+
 async function applySessionTail() {
   // The token alone leaves the instance on the developer token's home
   // storefront ('us' - visible in the failed /v1/catalog/us/ URLs).
@@ -264,12 +297,7 @@ async function applySessionTail() {
   // injected token we must do it ourselves, via the relay.
   try {
     if (!music || !injectedToken || typeof fetch !== 'function' || !RELAY_BASE) return;
-    const url = 'https://api.music.apple.com/v1/me/storefront';
-    const r = await fetch(RELAY_BASE + '?target=' + encodeURIComponent(url), {
-      headers: { 'Authorization': 'Bearer ' + window.AOI_CONFIG.developerToken, 'Music-User-Token': injectedToken }
-    });
-    const j = await r.json();
-    const sf = j && j.data && j.data[0] && j.data[0].id;
+    const sf = accountStorefront || await fetchAccountStorefront();
     if (sf) accountStorefront = sf;
     if (sf) {
       const before = music.storefrontId;
