@@ -20,7 +20,7 @@ window.AOI_CONFIG = { developerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZ
 // from the bundled login engine (AoiEngine.setUserToken), and MusicKit
 // treats the instance as authorized. Playback core identical to the
 // bundled engine 109.2 (serial ops, jump-first, drop-and-retry).
-window.ENGINE_VERSION = '110.6';
+window.ENGINE_VERSION = '110.7';
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
 post({ type: 'boot', version: window.ENGINE_VERSION });
 // v110.5: THE FIX. The 110.4 network tap proved two things on device:
@@ -246,7 +246,16 @@ async function initMK() {
     music.addEventListener('playbackStateDidChange', sendState);
     music.addEventListener('nowPlayingItemDidChange', () => { post({ type: 'item', item: itemJSON() }); sendState(); });
     await swReady;
-    post({ type: 'ready' });
+    // v110.7 STANDBY: do NOT post 'ready'. On device (110.6) this page's
+    // setQueue still short-circuits instantly with CONTENT_EQUIVALENT
+    // and an empty queue while the LOGIN engine - which the app fell
+    // back to before this page reported ready - plays fine. As long as
+    // this page never reports ready, the app keeps ALL playback on the
+    // login engine (the v109-proven path: sound, progress, switching
+    // all live) instead of splitting transport from state callbacks.
+    // This page stays benched until the equivalent fault is reproduced
+    // and fixed off-device; re-enabling is just restoring the post.
+    post({ type: 'log', message: 'playback engine on standby - login engine is the player' });
     sendAuth();
   } catch (e) { post({ type: 'error', where: 'configure', message: String((e && e.message) || e) }); }
 }
