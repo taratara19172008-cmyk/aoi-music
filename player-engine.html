@@ -20,7 +20,7 @@ window.AOI_CONFIG = { developerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZ
 // from the bundled login engine (AoiEngine.setUserToken), and MusicKit
 // treats the instance as authorized. Playback core identical to the
 // bundled engine 109.2 (serial ops, jump-first, drop-and-retry).
-window.ENGINE_VERSION = '110.1';
+window.ENGINE_VERSION = '110.2';
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
 post({ type: 'boot', version: window.ENGINE_VERSION });
 const swReady = Promise.resolve();
@@ -50,6 +50,13 @@ function op(fn) {
   return p;
 }
 function isAbort(e) { const m = String((e && e.message) || e); return (e && e.name === 'AbortError') || /abort/i.test(m); }
+// v110.2: MusicKit throws CONTENT_EQUIVALENT when the requested queue /
+// item is already the loaded one (its queue state persists across
+// launches, so a re-tap of the same song hits this on a fresh start).
+// That is success wearing an error's clothes: continue to play().
+function isContentEquivalent(e) {
+  return /CONTENT_EQUIVALENT/.test(String((e && (e.message || e.code || e.name)) || e));
+}
 function reportErr(where, e) { if (isAbort(e)) return; post({ type: 'error', where, message: String((e && e.message) || e) }); }
 
 function itemJSON() {
@@ -234,6 +241,11 @@ window.AoiEngine = {
               jumped = true;
               post({ type: 'log', message: 'playQueue: same queue, jump to ' + start + ' settled in ' + (Date.now() - tJump) + 'ms' });
             } catch (e) {
+              if (isContentEquivalent(e)) {
+                jumped = true;
+                post({ type: 'log', message: 'jump: content equivalent - already there' });
+                break;
+              }
               jumpErr = e;
               post({ type: 'log', message: 'jump attempt ' + (j + 1) + ' failed: ' + String((e && e.message) || e) });
             }
@@ -275,6 +287,10 @@ window.AoiEngine = {
             await music.setQueue({ songs: attemptIds, startIndex: playIndex });
             break;
           } catch (e) {
+            if (isContentEquivalent(e)) {
+              post({ type: 'log', message: 'setQueue: content equivalent - already loaded' });
+              break;
+            }
             const bad = parseUnresolved(e);
             if (!bad.length || attempt >= 3) throw e;
             let removedBefore = 0;
@@ -302,7 +318,8 @@ window.AoiEngine = {
         catch (e) { post({ type: 'log', message: 'jump after setQueue failed: ' + String((e && e.message) || e) }); }
       }
       const tPlay = Date.now();
-      await music.play();
+      try { await music.play(); }
+      catch (e) { if (!isContentEquivalent(e)) throw e; post({ type: 'log', message: 'play: content equivalent' }); }
       post({ type: 'log', message: 'play settled in ' + (Date.now() - tPlay) + 'ms' });
       post({ type: 'log', message: 'playQueue settled in ' + (Date.now() - t0) + 'ms' });
     }).catch(e => reportErr('playQueue', e));
