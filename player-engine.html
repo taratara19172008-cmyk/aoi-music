@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AoiPlayerEngine</title>
+<script>
+window.AOI_CONFIG = { developerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzkzOTAwNzA4LCJleHAiOjE3OTk5NDg3MDgsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.7L-PYJHjO8PpFdhKS-OSkf_snyFvg5cq-JDERUs_N_UcUX9Vk0kf1WLatgDeEvhB_Arg1b5Tl-99G1v6hUwH0A", relayBase: "https://aoi-relay.vercel.app/api/relay" };
+</script>
+<script>window.__mkScript = 'pending';</script>
+<script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js" async onload="window.__mkScript='loaded'" onerror="window.__mkScript='error'"></script>
+</head>
+<body>
+<script>
+'use strict';
+// AoiMusic PLAYBACK engine (v110): a REAL page served from GitHub Pages
+// (same origin family as the web app, which plays instantly in Safari),
+// loaded by the native app in a second web view. It never runs the
+// authorize popup itself - the app injects the music user token it got
+// from the bundled login engine (AoiEngine.setUserToken), and MusicKit
+// treats the instance as authorized. Playback core identical to the
+// bundled engine 109.2 (serial ops, jump-first, drop-and-retry).
+window.ENGINE_VERSION = '110.0';
+function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
+post({ type: 'boot', version: window.ENGINE_VERSION });
+const swReady = Promise.resolve();
+let music = null;
+// ---------- playback core (v108: the web app's proven shape) ----------
+// v105-v107 wrapped MusicKit in an adversarial control system: per-call
+// timeouts, target verification with forced re-jumps, a stall watchdog,
+// plus a second re-issue watchdog on the Swift side. On a real network
+// those mechanisms fought MusicKit's own loading - a slow stream start
+// tripped the 2.6s verifier, which restarted the load with a forced
+// jump and posted a failure error, while the Swift side re-sent the
+// whole queue at 6s. Switches collapsed; the first play (nothing to
+// fight) worked. The web app's engine - the one that played and
+// switched fine on this same phone - simply serializes every op and
+// trusts each call: setQueue -> jump only when startIndex > 0 -> play,
+// no timeouts, no verification, no retries. This core mirrors it.
+// app modes: 0 off, 1 all, 2 one -> MusicKit: 0 off, 1 one, 2 all
+const mkRepeat = m => m === 1 ? 2 : m === 2 ? 1 : 0;
+let appRepeat = 0, appShuffle = false;
+
+let opChain = Promise.resolve();
+let queueReqToken = 0;
+function op(fn) {
+  const run = async () => { return await fn(); };
+  const p = opChain.then(run, run);
+  opChain = p.catch(() => {});
+  return p;
+}
+function isAbort(e) { const m = String((e && e.message) || e); return (e && e.name === 'AbortError') || /abort/i.test(m); }
+function reportErr(where, e) { if (isAbort(e)) return; post({ type: 'error', where, message: String((e && e.message) || e) }); }
+
+function itemJSON() {
+  const it = music && music.nowPlayingItem;
+  if (!it) return null;
+  const a = it.attributes || {};
+  return {
+    id: it.id || a.id || '',
+    title: it.title || a.name || '',
+    artist: it.artistName || a.artistName || '',
+    album: it.albumName || a.albumName || '',
+    artwork: (it.artwork && it.artwork.url) || it.artworkURL || (a.artwork && a.artwork.url) || '',
+    duration: (typeof it.playbackDuration === 'number' ? it.playbackDuration : (a.durationInMillis ? a.durationInMillis / 1000 : 0)) || music.currentPlaybackDuration || 0
+  };
+}
+function sendState() {
+  if (!music) return;
+  post({ type: 'state', isPlaying: !!music.isPlaying, state: music.playbackState });
+}
+function sendAuth() {
+  if (!music) return;
+  post({ type: 'auth', authorized: !!music.isAuthorized, storefront: music.storefrontId || '', token: music.musicUserToken || '' });
+}
+setInterval(() => {
+  if (!music) return;
+  assertMediaSession();
+  post({ type: 'progress', t: music.currentPlaybackTime || 0, d: music.currentPlaybackDuration || 0, isPlaying: !!music.isPlaying });
+}, 500);
+
+// ---------- lock screen / control centre buttons (v107) ----------
+// iOS picks the remote buttons from the handlers the page registers:
+// the web defaults surface ±10s seek buttons, while the official app
+// shows previous/next track. Registering track handlers (and clearing
+// the seek ones) makes the system offer track changes, like the
+// original. Re-asserted on the progress tick in case MusicKit rewrites
+// the handlers when a new item loads.
+function assertMediaSession() {
+  try {
+    if (!music || !('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    ms.setActionHandler('previoustrack', () => { window.AoiEngine.prev(); });
+    ms.setActionHandler('nexttrack', () => { window.AoiEngine.next(); });
+    ms.setActionHandler('seekforward', null);
+    ms.setActionHandler('seekbackward', null);
+    ms.setActionHandler('seekto', d => { if (d && typeof d.seekTime === 'number') window.AoiEngine.seek(d.seekTime); });
+    ms.setActionHandler('play', () => { window.AoiEngine.play(); });
+    ms.setActionHandler('pause', () => { window.AoiEngine.pause(); });
+  } catch (e) {}
+}
+
+let mkInitStarted = false;
+let injectedToken = '';
+async function initMK() {
+  if (mkInitStarted || !window.MusicKit) return;
+  mkInitStarted = true;
+  post({ type: 'log', message: 'configure start' });
+  try {
+    await MusicKit.configure({ developerToken: window.AOI_CONFIG.developerToken, app: { name: 'AoiMusic', build: '2.0.0' } });
+    music = MusicKit.getInstance();
+    window.__aoiHasMusic = true;
+    if (injectedToken) { try { music.musicUserToken = injectedToken; } catch (e) {} }
+    music.addEventListener('playbackStateDidChange', sendState);
+    music.addEventListener('nowPlayingItemDidChange', () => { post({ type: 'item', item: itemJSON() }); sendState(); });
+    await swReady;
+    post({ type: 'ready' });
+    sendAuth();
+  } catch (e) { post({ type: 'error', where: 'configure', message: String((e && e.message) || e) }); }
+}
+document.addEventListener('musickitloaded', initMK);
+// the async script can execute before the listener above attaches (fast cache) — poll for the global as a fallback
+let lastMkFlag = 'pending';
+const mkPoll = setInterval(() => {
+  if (window.__mkScript !== lastMkFlag) { lastMkFlag = window.__mkScript; post({ type: 'log', message: 'script=' + lastMkFlag }); }
+  if (music) { clearInterval(mkPoll); return; }
+  if (window.MusicKit) initMK();
+}, 500);
+
+setTimeout(() => { if (!music) post({ type: 'error', where: 'musickit', message: 'load timeout, script=' + window.__mkScript + ', global=' + (typeof window.MusicKit) }); }, 10000);
+
+function loadedQueueIds() {
+  try {
+    const items = (music && music.queue && music.queue.items) || [];
+    const out = [];
+    for (let i = 0; i < items.length; i++) out.push(String((items[i] && items[i].id) || ''));
+    return out;
+  } catch (e) { return []; }
+}
+function parseUnresolved(e) {
+  const m = /could not be resolved:?\s*([0-9]+(?:\s*,\s*[0-9]+)*)/i.exec(String((e && e.message) || e));
+  if (!m) return [];
+  return m[1].split(',').map(s => s.trim()).filter(Boolean);
+}
+
+window.AoiEngine = {
+  setUserToken(t) {
+    injectedToken = t || '';
+    if (music) {
+      try { music.musicUserToken = injectedToken; } catch (e) {}
+      sendAuth();
+      post({ type: 'log', message: 'user token ' + (injectedToken ? 'applied' : 'cleared') });
+    }
+  },
+  async authorize() {
+    if (!music) { post({ type: 'error', where: 'authorize', message: 'engine not ready' }); return; }
+    post({ type: 'log', message: 'origin: ' + location.origin });
+    try { await music.authorize(); } catch (e) { post({ type: 'error', where: 'authorize', message: String((e && e.message) || e) }); }
+    sendAuth();
+  },
+  async unauthorize() {
+    if (!music) return;
+    try { await music.unauthorize(); } catch (e) {}
+    sendAuth();
+  },
+  playQueue(ids, startIndex, shuffle, repeat) {
+    if (!music || !ids || !ids.length) return;
+    // Modes are captured at CALL time: the op may run later, and a newer
+    // call's settings must not leak into an older queued operation.
+    const sh = !!shuffle, rp = repeat | 0, start = startIndex | 0;
+    const token = ++queueReqToken;
+    return op(async () => {
+      // Coalescing: if a NEWER playQueue was requested while this one
+      // waited its turn, skip it — only the latest queue matters, and
+      // executing stale loads back to back is what makes rapid
+      // switching feel stuck. (Observability + this skip were the
+      // Codex review's two adopted suggestions.)
+      if (token !== queueReqToken) { post({ type: 'log', message: 'playQueue superseded, skipped' }); return; }
+      const t0 = Date.now();
+      appShuffle = sh; appRepeat = rp;
+      // v109 jump-first: if the requested list IS the queue MusicKit
+      // already holds (same ids, same order) and shuffle is off, jump
+      // inside it instead of paying a full setQueue reload - the v108
+      // on-device diagnostics measured a setQueue settle at 9-55s,
+      // which is what made switching inside an album feel broken. The
+      // web app's player used the same trick. Any mismatch, shuffle
+      // being on, or a failed jump falls back to the full reload.
+      let jumped = false;
+      let jumpErr = null;
+      if (!sh) {
+        const cur = loadedQueueIds();
+        if (cur.length === ids.length && cur.every((v, i) => v === String(ids[i]))) {
+          const tJump = Date.now();
+          for (let j = 0; j < 2 && !jumped; j++) {
+            try {
+              await music.changeToMediaAtIndex(start);
+              jumped = true;
+              post({ type: 'log', message: 'playQueue: same queue, jump to ' + start + ' settled in ' + (Date.now() - tJump) + 'ms' });
+            } catch (e) {
+              jumpErr = e;
+              post({ type: 'log', message: 'jump attempt ' + (j + 1) + ' failed: ' + String((e && e.message) || e) });
+            }
+          }
+          // v109.2: an ABORTED jump must not escalate into a full
+          // setQueue reload - on device that turned one interrupted
+          // jump into an 81s reload (2026-11-17 12:50 log). An abort
+          // means the load was interrupted, not that the queue is
+          // wrong: if the loaded queue is still exactly this list,
+          // skip the reload and just play. Non-abort jump errors keep
+          // the old behaviour (reload below) - something is genuinely
+          // wrong with jumping, and the reload at least plays.
+          if (!jumped && jumpErr && isAbort(jumpErr)) {
+            const cur2 = loadedQueueIds();
+            if (cur2.length === ids.length && cur2.every((v, i) => v === String(ids[i]))) {
+              jumped = true;
+              post({ type: 'log', message: 'jump aborted, queue intact - skipping reload' });
+            }
+          }
+          if (!jumped && jumpErr && !isAbort(jumpErr)) {
+            post({ type: 'log', message: 'same-queue jump failed, reloading: ' + String((jumpErr && jumpErr.message) || jumpErr) });
+          }
+        }
+      }
+      let playIndex = start;
+      if (!jumped) {
+        post({ type: 'log', message: 'playQueue start (' + ids.length + ' songs @' + start + ')' });
+        const tQ = Date.now();
+        // v109.1 drop-and-retry: MusicKit rejects the WHOLE setQueue
+        // when even one id cannot be resolved in this storefront
+        // (observed on device 2026-11-17: a 38-song list died on one
+        // CN-unavailable track, its id named in the error). Drop the
+        // named ids, shift the start index left past any drops before
+        // it, and retry - the rest of the list plays instead of
+        // nothing at all. Non-resolution errors are not retried.
+        let attemptIds = ids.slice();
+        for (let attempt = 0; ; attempt++) {
+          try {
+            await music.setQueue({ songs: attemptIds, startIndex: playIndex });
+            break;
+          } catch (e) {
+            const bad = parseUnresolved(e);
+            if (!bad.length || attempt >= 3) throw e;
+            let removedBefore = 0;
+            const kept = [];
+            for (let i = 0; i < attemptIds.length; i++) {
+              if (bad.indexOf(String(attemptIds[i])) >= 0) { if (i < playIndex) removedBefore++; }
+              else kept.push(attemptIds[i]);
+            }
+            if (kept.length === attemptIds.length || !kept.length) throw e;
+            post({ type: 'log', message: 'playQueue: dropped unresolvable ' + bad.join(', ') + ', retrying with ' + kept.length });
+            attemptIds = kept;
+            playIndex = Math.max(0, playIndex - removedBefore);
+            if (playIndex >= attemptIds.length) playIndex = attemptIds.length - 1;
+          }
+        }
+        post({ type: 'log', message: 'setQueue settled in ' + (Date.now() - tQ) + 'ms' });
+      }
+      // Apply the CAPTURED modes, not the globals: setShuffle/setRepeat
+      // may have run during the await and rewritten the globals (the
+      // residual race the Codex review caught in round 2).
+      music.shuffleMode = sh ? 1 : 0;
+      music.repeatMode = mkRepeat(rp);
+      if (!jumped && playIndex > 0) {
+        try { await music.changeToMediaAtIndex(playIndex); }
+        catch (e) { post({ type: 'log', message: 'jump after setQueue failed: ' + String((e && e.message) || e) }); }
+      }
+      const tPlay = Date.now();
+      await music.play();
+      post({ type: 'log', message: 'play settled in ' + (Date.now() - tPlay) + 'ms' });
+      post({ type: 'log', message: 'playQueue settled in ' + (Date.now() - t0) + 'ms' });
+    }).catch(e => reportErr('playQueue', e));
+  },
+  playStation(id) {
+    if (!music || !id) return;
+    // A station request is the newer intent: it invalidates any WAITING
+    // playQueue (a running one still finishes first, then this runs).
+    queueReqToken++;
+    return op(async () => { await music.setQueue({ station: id }); await music.play(); })
+      .catch(e => reportErr('station', e));
+  },
+  play() { if (music) return op(() => music.play()).catch(() => {}); },
+  pause() { if (music) return op(() => music.pause()).catch(() => {}); },
+  next() { if (music) return op(() => music.skipToNextItem()).catch(() => {}); },
+  prev() { if (music) return op(() => music.skipToPreviousItem()).catch(() => {}); },
+  jumpTo(i) {
+    if (!music) return;
+    return op(async () => {
+      try { await music.changeToMediaAtIndex(i | 0); }
+      catch (e) { post({ type: 'log', message: 'jumpTo failed: ' + String((e && e.message) || e) }); }
+    }).catch(() => {});
+  },
+  seek(sec) { if (music) { try { music.seekToTime(Number(sec) || 0); } catch (e) {} } },
+  setShuffle(b) { appShuffle = !!b; if (music) music.shuffleMode = appShuffle ? 1 : 0; },
+  setRepeat(m) { appRepeat = m | 0; if (music) music.repeatMode = mkRepeat(appRepeat); },
+  state() { sendState(); const it = itemJSON(); if (it) post({ type: 'item', item: it }); }
+};
+</script>
+</body>
+</html>
