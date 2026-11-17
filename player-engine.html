@@ -20,10 +20,45 @@ window.AOI_CONFIG = { developerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZ
 // from the bundled login engine (AoiEngine.setUserToken), and MusicKit
 // treats the instance as authorized. Playback core identical to the
 // bundled engine 109.2 (serial ops, jump-first, drop-and-retry).
-window.ENGINE_VERSION = '110.3';
+window.ENGINE_VERSION = '110.4';
 function post(o) { try { window.webkit.messageHandlers.aoi.postMessage(o); } catch (e) {} }
 post({ type: 'boot', version: window.ENGINE_VERSION });
-const swReady = Promise.resolve();
+// v110.4 diagnostics: tap fetch/XHR so MusicKit's own API calls become
+// visible in the log (url, status, body snippet). The 110.3 log proved
+// setQueue resolves ZERO items in ~3ms against an empty queue - either
+// no request leaves the page, or the response says "nothing". This tap
+// distinguishes the two. Passive only: always calls through untouched.
+try {
+  const of = window.fetch;
+  if (of) window.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    const p = of.apply(this, arguments);
+    if (url.includes('music.apple.com') && !url.includes('js-cdn')) {
+      p.then(r => {
+        post({ type: 'log', message: 'net: ' + ((init && init.method) || 'GET') + ' ' + url.slice(0, 110) + ' -> ' + r.status });
+        if (url.includes('/songs') || url.includes('/storefront')) r.clone().text().then(t => post({ type: 'log', message: 'net body: ' + t.slice(0, 140) })).catch(() => {});
+      }).catch(e => post({ type: 'log', message: 'net ERR ' + url.slice(0, 90) + ' ' + String((e && e.message) || e) }));
+    }
+    return p;
+  };
+  if (window.XMLHttpRequest) {
+    const oo = XMLHttpRequest.prototype.open, os = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function (m, u) { this.__aoiU = u; this.__aoiM = m; return oo.apply(this, arguments); };
+    XMLHttpRequest.prototype.send = function () {
+      const u = this.__aoiU || '';
+      if (String(u).includes('music.apple.com') && !String(u).includes('js-cdn')) {
+        this.addEventListener('loadend', () => post({ type: 'log', message: 'net(x): ' + (this.__aoiM || 'GET') + ' ' + String(u).slice(0, 110) + ' -> ' + this.status }));
+      }
+      return os.apply(this, arguments);
+    };
+  }
+} catch (e) {}
+// v110.4: REAL SW gate (was a Promise.resolve() stub left from the
+// 110.0 fork). Mirror the login engine: 'ready' waits until the relay
+// worker CONTROLS this page, so MusicKit's internal calls go through
+// the relay from the very first one instead of racing ahead direct.
+let resolveSW;
+const swReady = new Promise(r => { resolveSW = r; });
 let music = null;
 // ---------- playback core (v108: the web app's proven shape) ----------
 // v105-v107 wrapped MusicKit in an adversarial control system: per-call
@@ -132,8 +167,12 @@ const RELAY_BASE = (window.AOI_CONFIG && window.AOI_CONFIG.relayBase) || '';
 if (RELAY_BASE && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js?relay=' + encodeURIComponent(RELAY_BASE))
     .then(() => post({ type: 'log', message: 'sw: relay worker registered' }))
-    .catch((e) => post({ type: 'log', message: 'sw: register failed ' + (e && e.message || e) }));
-}
+    .catch((e) => { post({ type: 'log', message: 'sw: register failed ' + (e && e.message || e) }); resolveSW(); });
+  const swPoll = setInterval(() => {
+    if (navigator.serviceWorker.controller) { clearInterval(swPoll); post({ type: 'log', message: 'sw controlling' }); resolveSW(); }
+  }, 400);
+  setTimeout(() => { clearInterval(swPoll); post({ type: 'log', message: 'sw gate timeout' }); resolveSW(); }, 9000);
+} else { resolveSW(); }
 let mkInitStarted = false;
 let injectedToken = '';
 async function initMK() {
@@ -299,6 +338,7 @@ window.AoiEngine = {
       let playIndex = start;
       if (!jumped) {
         post({ type: 'log', message: 'playQueue start (' + ids.length + ' songs @' + start + ')' });
+        try { post({ type: 'log', message: 'swctl=' + (('serviceWorker' in navigator && !!navigator.serviceWorker.controller)) }); } catch (e) {}
         try { post({ type: 'log', message: 'queue state: items=' + ((music.queue && music.queue.items && music.queue.items.length) ?? '?') + ' now=' + ((music.nowPlayingItem && music.nowPlayingItem.id) || 'none') + ' state=' + music.playbackState }); } catch (e) {}
         const tQ = Date.now();
         // v109.1 drop-and-retry: MusicKit rejects the WHOLE setQueue
